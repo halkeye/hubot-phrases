@@ -22,14 +22,6 @@
 util = require 'util'
 
 module.exports = (robot) ->
-  if robot.adapter.bot?
-    robot.adapter.action = (envelope, strings...) ->
-      target = @_getTargetFromEnvelope envelope
-      unless target
-        return console.log "ERROR: Not sure who to send to. envelope=", envelope
-      for str in strings
-        @bot.action target, str
-
   class Factoid
     constructor: (name, data) ->
       @name = name
@@ -90,8 +82,8 @@ module.exports = (robot) ->
       if tidbit.verb == "<reply>"
         msg.send output
       else if tidbit.verb == "<action>"
-        if msg.action?
-          msg.action output
+        if msg.emote?
+          msg.emote output
         else
           msg.send "/me " + output
       else if tidbit.verb == "is" && factoid.name.toLowerCase() == robot.name.toLowerCase()
