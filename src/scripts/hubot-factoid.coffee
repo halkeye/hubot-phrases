@@ -101,11 +101,11 @@ module.exports = (robot) ->
 
   robot.factoid = new FactoidHandler
 
-  robot.respond /something random$/, (msg) =>
+  robot.respond /(?:do something|something random)$/, (msg) =>
     factoid = do robot.factoid.random
     robot.factoid.output msg, factoid
 
-  robot.hear /^something random$/, (msg) =>
+  robot.hear /^(?:do something|something random)$/, (msg) =>
     factoid = do robot.factoid.random
     robot.factoid.output msg, factoid
 
