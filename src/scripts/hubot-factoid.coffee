@@ -5,10 +5,20 @@
 #   None
 #
 # Configuration:
-#   None
+#   HUBOT_URL - Base url instead of hostname:port, ex: "http://hubot.kodekoan.com"
+#
+# URLS:
+#   /hubot/factoid/:factoid
 #
 # Commands:
-#   None
+#   hubot literal <factoid> - Outputs information about a factoid. Right now only the url
+#   hubot do something - see something random
+#   hubot something random - see somethin random
+#   do something - see something random
+#   something random - Outputs a random factoid
+#   hubot forget <factoid>#<num> - Deletes the <num>th response of <factoid>
+#   hubot forget that - Deletes the last used response
+#   <factoid> - Outputs a random reply that matches <factoid>
 #
 # Notes:
 #   Copyright (c) 2013 Gavin Mogan
@@ -128,23 +138,23 @@ module.exports = (robot) ->
     #res.send require('util').inspect(req.params)
 
 
-  robot.hear /^literal(?:\[([*\d]+)\])?\s+(.*)$/, (msg) =>
+  robot.respond /literal(?:\[([*\d]+)\])?\s+(.*)$/, (msg) =>
     page = msg.match[1]
     factoid_name = msg.match[2].trim()
     factoid = robot.factoid.get factoid_name
     if !factoid
       msg.reply "No such factoid"
       return
-    baseurl = process.env.HUBOT_URL || 'http://' + os.hostname() + ':' + robot.server.address().port
+    baseurl = (process.env.HUBOT_URL || 'http://' + os.hostname() + ':' + robot.server.address().port).replace(/\/+$/, '')
     msg.reply baseurl + '/' + robot.name + '/factoid/' + encodeURIComponent(factoid_name)
 
-  robot.hear /^forget #(\d+)$/, (msg) =>
+  robot.respond /forget #(\d+)$/, (msg) =>
     msg.reply "Sorry, syntax is now \"forget <factoid>#<index from 0>\" or \"forget that\""
 
-  robot.hear /^forget that$/, (msg) =>
+  robot.resond /forget that$/, (msg) =>
     msg.reply "FIXME - not implemented yet"
 
-  robot.hear /^forget (.*)#(\d+)$/, (msg) =>
+  robot.respond /forget (.*)#(\d+)$/, (msg) =>
     factoid_name = msg.match[1].trim()
     tid = parseInt(msg.match[2], 10)-1
     factoid = robot.factoid.get factoid_name
