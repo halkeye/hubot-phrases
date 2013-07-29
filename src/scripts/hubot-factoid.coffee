@@ -147,6 +147,7 @@ module.exports = (robot) ->
 
 
   robot.respond /literal(?:\[([*\d]+)\])?\s+(.*)$/, (msg) =>
+    # page - http://wiki.xkcd.com/irc/bucket#Listing_factoids
     page = msg.match[1]
     factoid_name = msg.match[2].trim()
     factoid = robot.factoid.get factoid_name
