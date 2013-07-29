@@ -34,6 +34,13 @@ module.exports = (robot) ->
       else
         for tid in data.tidbits
           @tidbits.push tid
+    can_edit: (user) ->
+      if user.roles
+        if "edit_factoids" in user.roles
+          return true
+        if "edit_factoid_" + @name in user.roles
+          return true
+      return !!@readonly
     tidbit: () ->
       @tidbits[Math.floor(Math.random() * @tidbits.length)]
     toObj: () ->
@@ -123,7 +130,7 @@ module.exports = (robot) ->
 
   robot.hear /^literal(?:\[([*\d]+)\])?\s+(.*)$/, (msg) =>
     page = msg.match[1]
-    factoid_name = msg.match[2]
+    factoid_name = msg.match[2].trim()
     factoid = robot.factoid.get factoid_name
     if !factoid
       msg.reply "No such factoid"
@@ -138,11 +145,14 @@ module.exports = (robot) ->
     msg.reply "FIXME - not implemented yet"
 
   robot.hear /^forget (.*)#(\d+)$/, (msg) =>
-    factoid_name = msg.match[1]
+    factoid_name = msg.match[1].trim()
     tid = parseInt(msg.match[2], 10)-1
     factoid = robot.factoid.get factoid_name
     if !factoid
       msg.reply "No such factoid"
+      return
+    if !factoid.can_edit msg.message.user
+      msg.reply "Sorry, you don't have permissions to edit '"+factoid.name+"'."
       return
     if tid < 0
       msg.reply "Sorry, you must provide a number greater than 0 (as this is 1 based)"
@@ -154,7 +164,7 @@ module.exports = (robot) ->
     msg.reply "Deleted tidbit: " + tidbit[0].verb + '|' + tidbit[0].tidbit
 
   robot.hear /^(.*)\??$/, (msg) =>
-    factoid_name = msg.match[1]
+    factoid_name = msg.match[1].trim()
     factoid = robot.factoid.get factoid_name
     return unless factoid
     robot.factoid.output msg, factoid
