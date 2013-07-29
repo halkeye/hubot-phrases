@@ -18,6 +18,7 @@
 #   something random - Outputs a random factoid
 #   hubot forget <factoid>#<num> - Deletes the <num>th response of <factoid>
 #   hubot forget that - Deletes the last used response
+#   hubot what was that - Outputs what the last factoid was
 #   <factoid> - Outputs a random reply that matches <factoid>
 #
 # Notes:
@@ -32,6 +33,8 @@
 util = require 'util'
 os = require 'os'
 
+# FIXME this should be per room
+last_factoid = null
 module.exports = (robot) ->
   class Factoid
     constructor: (name, data) ->
@@ -93,6 +96,11 @@ module.exports = (robot) ->
       return @get factoid
     output: (msg, factoid) ->
       tidbit = factoid.tidbit()
+      # FIXME this should be per room
+      last_factoid = {
+        factoid: factoid,
+        tidbit: tidbit
+      }
 
       output = tidbit.tidbit
       if robot.variables?
@@ -151,7 +159,7 @@ module.exports = (robot) ->
   robot.respond /forget #(\d+)$/, (msg) =>
     msg.reply "Sorry, syntax is now \"forget <factoid>#<index from 0>\" or \"forget that\""
 
-  robot.resond /forget that$/, (msg) =>
+  robot.respond /forget that$/, (msg) =>
     msg.reply "FIXME - not implemented yet"
 
   robot.respond /forget (.*)#(\d+)$/, (msg) =>
@@ -172,6 +180,30 @@ module.exports = (robot) ->
       return
     tidbit = factoid.tidbits.splice(tid, 1)
     msg.reply "Deleted tidbit: " + tidbit[0].verb + '|' + tidbit[0].tidbit
+    factoid.save()
+
+  robot.respond /what was that\??$/, (msg) ->
+    # FIXME this should be per room
+    return unless last_factoid
+    # FIXME - keep track of alias in last_factoid as well
+    # halkeye: That was 'rofl' (#315): <reply> I am also amused
+    # halkeye: That was 'that's what she said' => 'thats what she said' (#65): <reply> No, that's what HE said.
+    # halkeye: That was 'give me a weapon' (#863): <action> gives $weapon to $who;  vars used: { 'weapon' => [ 'a Biggoron Sword' ]};.
+    name = last_factoid.factoid.name
+    tidbit = last_factoid.tidbit
+    idx = last_factoid.factoid.tidbits.map((tid) -> tid.tidbit).indexOf(tidbit.tidbit)
+    response = []
+    response.push "That was"
+    response.push "'$last_alias' => " if last_factoid.alias # FIXME - if alias
+    response.push "'" + name + "'"
+    response.push "(#"+idx+") "
+    response.push tidbit.verb
+    response.push tidbit.tidbit
+    if last_factoid.last_vars # FIXME
+      response.push ";"
+      response.push "vars used:"
+      response.push util.inspect last_factoid.last_vars, { depth: null }
+    msg.reply response.join ' '
 
   robot.hear /^(.*)\??$/, (msg) =>
     factoid_name = msg.match[1].trim()
