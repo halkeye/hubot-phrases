@@ -20,6 +20,7 @@
 'use strict'
 
 util = require 'util'
+os = require 'os'
 
 module.exports = (robot) ->
   class Factoid
@@ -100,6 +101,57 @@ module.exports = (robot) ->
   robot.hear /^something random$/, (msg) =>
     factoid = do robot.factoid.random
     robot.factoid.output msg, factoid
+
+
+  robot.router.get "/#{robot.name}/factoid/:factoid", (req, res) ->
+    factoid_name = req.params.factoid
+    return res.status(404).send('Not Found') unless factoid_name
+    factoid = robot.factoid.get factoid_name
+    return res.status(404).send('Not Found') unless factoid
+    res.setHeader 'content-type', 'text/plain'
+    content = []
+    content.push 'Factoid: [' + factoid_name + ']'
+    content.push 'Protected: ' + factoid.readonly ? "true" : "false"
+    content.push ""
+    content.push "Tidbits:"
+    for tidbit in factoid.tidbits
+      content.push tidbit.verb + "|" + tidbit.tidbit
+    res.send content.join "\n"
+    res.end
+    #res.send require('util').inspect(req.params)
+
+
+  robot.hear /^literal(?:\[([*\d]+)\])?\s+(.*)$/, (msg) =>
+    page = msg.match[1]
+    factoid_name = msg.match[2]
+    factoid = robot.factoid.get factoid_name
+    if !factoid
+      msg.reply "No such factoid"
+      return
+    baseurl = process.env.HUBOT_URL || 'http://' + os.hostname() + ':' + robot.server.address().port
+    msg.reply baseurl + '/' + robot.name + '/factoid/' + encodeURIComponent(factoid_name)
+
+  robot.hear /^forget #(\d+)$/, (msg) =>
+    msg.reply "Sorry, syntax is now \"forget <factoid>#<index from 0>\" or \"forget that\""
+
+  robot.hear /^forget that$/, (msg) =>
+    msg.reply "FIXME - not implemented yet"
+
+  robot.hear /^forget (.*)#(\d+)$/, (msg) =>
+    factoid_name = msg.match[1]
+    tid = parseInt(msg.match[2], 10)-1
+    factoid = robot.factoid.get factoid_name
+    if !factoid
+      msg.reply "No such factoid"
+      return
+    if tid < 0
+      msg.reply "Sorry, you must provide a number greater than 0 (as this is 1 based)"
+      return
+    if !factoid.tidbits[tid]
+      msg.reply "Can't find tidbit #" + tid
+      return
+    tidbit = factoid.tidbits.splice(tid, 1)
+    msg.reply "Deleted tidbit: " + tidbit[0].verb + '|' + tidbit[0].tidbit
 
   robot.hear /^(.*)\??$/, (msg) =>
     factoid_name = msg.match[1]
