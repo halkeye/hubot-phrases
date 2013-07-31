@@ -38,13 +38,17 @@ last_factoid = null
 module.exports = (robot) ->
   class Factoid
     constructor: (name, data) ->
+      if !data
+        data = {}
       @name = name
       @tidbits = []
       @alias = false
-      @readonly = data.readonly
+      @readonly = false
+      if data.readonly
+        @readonly = true
       if data.alias
         @alias = data.alias
-      else
+      else if data.tidbits
         for tid in data.tidbits
           @tidbits.push tid
     can_edit: (user) ->
@@ -53,10 +57,19 @@ module.exports = (robot) ->
           return true
         if "edit_factoid_" + @name in user.roles
           return true
-      return !!@readonly
+      if @readonly
+        return false
+      return true
     tidbit: () ->
       @tidbits[Math.floor(Math.random() * @tidbits.length)]
-    toObj: () ->
+    add_tidbit: (tidbit, verb) ->
+      # FIXME - add validation
+      @tidbits.push {
+        tidbit: tidbit,
+        verb: verb
+      }
+
+    to_obj: () ->
       if @alias
         return {
           alias: @alias
@@ -67,11 +80,12 @@ module.exports = (robot) ->
         tidbits: @tidbits
       }
     save: () ->
-      robot.brain.data.factoids[@name] = @toObj()
+      robot.brain.data.factoids[@name] = @to_obj()
 
 
   class FactoidHandler
     constructor: () ->
+      @stats = {}
       @facts = {}
       robot.brain.on 'loaded', (data) =>
         @facts = {}
@@ -116,6 +130,75 @@ module.exports = (robot) ->
         msg.send "I am " + output
       else
         msg.send [factoid.name, tidbit.verb, output].join ' '
+    setAddressed: (msg) =>
+      msg.message.addressed = true
+      @set msg
+    set: (msg) =>
+      fact = msg.match[1].trim()
+      verb = msg.match[2].trim()
+      tidbit = msg.match[3].trim()
+      forced = !!msg.match[4]
+      if !msg.message.addressed && /^[^a-zA-Z]*<.?\S+>/.test(fact)
+        robot.logger.debug "Not learning from what seems to be an IRC quote: $fact"
+        return
+      if !msg.message.addressed && !forced && /\=~/.test(fact)
+        robot.logger.debug  "Not learning what looks like a botched =~ query"
+        msg.reply "Fix your =~ command."
+        return
+
+      if fact == 'you' and verb == 'are'
+        fact = robot.name
+        verb = "is"
+      else if fact == "I" and verb == "am"
+        fact = msg.message.user.name
+        verb = "is"
+
+      @stats.learn++
+      matches = tidbit.match(/^<(action|reply)>\s*(.*)/)
+      if matches
+        verb = "<" + matches[1] + ">"
+        tidbit = matches[2]
+      else if verb == "is also"
+        also = 1
+        verb = "is"
+      else if forced
+        if verb != "<action>" and verb != "<reply>"
+          verb = verb.replace(/^<|>$/,'')
+        if /\sis\salso$/.test(fact)
+          also = 1
+        else
+          fact.replace(/\sis$/, '')
+
+      if verb.toLowerCase == '<alias>'
+        msg.reply "please use the 'alias' command."
+        return
+
+      fact = fact.trim()
+      robot.logger.debug "Learning #{fact} #{verb} #{tidbit}"
+
+      if fact.toLowerCase() == msg.message.user.name.toLowerCase() or fact.toLowerCase() == msg.message.user.name.toLowerCase() + " quotes"
+        robot.logger.debug "Not allowing #{msg.message.user.name} to edit his own factoid"
+        msg.reply "Please don't edit your own factoids."
+        return
+
+      factoid = @get fact
+      if !factoid
+        factoid = @facts[fact] = new Factoid(fact)
+      if !factoid.can_edit msg.message.user
+        robot.logger.debug "#{factoid} that factoid is protected"
+        msg.reply "Sorry, that factoid is protected"
+        return
+
+      for t in factoid.tidbits
+        if tidbit.toLowerCase() == t.tidbit.toLowerCase()
+          msg.reply "I already had it that way"
+          return
+
+      factoid.add_tidbit tidbit, verb
+      factoid.tidbits.push
+      factoid.save()
+      robot.logger.debug "#{msg.message.user.name} taught in #{msg.message.user.room} #{factoid.tidbits.length} '#{fact}', '#{verb}' '#{tidbit}'"
+      msg.reply "Okay."
 
   robot.factoid = new FactoidHandler
 
@@ -206,6 +289,17 @@ module.exports = (robot) ->
       response.push util.inspect last_factoid.last_vars, { depth: null }
     msg.reply response.join ' '
 
+
+  robot.respond /(.*?) (?:is ?|are ?)(<\w+>)\s*(.*)()/i, robot.factoid.setAddressed
+  robot.hear /^(.*?) (?:is ?|are ?)(<\w+>)\s*(.*)()/i, robot.factoid.set
+  robot.respond /(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
+  robot.hear /^(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
+  robot.respond /(.*?)(<'s>)\s+(.*)()/i, robot.factoid.set
+  robot.hear /^(.*?)(<'s>)\s+(.*)()/i, robot.factoid.setAdressed
+  robot.respond /(.*?)\s+(is(?: also)?|are)\s+(.*)/i, robot.factoid.set
+  robot.hear /^(.*?)\s+(is(?: also)?|are)\s+(.*)/i, robot.factoid.setAddressed
+
+  ## FIXME, make these loaded once brain is loaded so it doesn't need to do wildcard match
   robot.hear /^(.*)\??$/, (msg) =>
     factoid_name = msg.match[1].trim()
     factoid = robot.factoid.get factoid_name
