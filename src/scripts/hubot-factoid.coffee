@@ -134,6 +134,7 @@ module.exports = (robot) ->
       msg.message.addressed = true
       @set msg
     set: (msg) =>
+      msg.finish() # we are adding a message, so ignore any other handler type
       fact = msg.match[1].trim()
       verb = msg.match[2].trim()
       tidbit = msg.match[3].trim()
@@ -289,15 +290,14 @@ module.exports = (robot) ->
       response.push util.inspect last_factoid.last_vars, { depth: null }
     msg.reply response.join ' '
 
-
-  robot.respond /(.*?) (?:is ?|are ?)(<\w+>)\s*(.*)()/i, robot.factoid.setAddressed
   robot.hear /^(.*?) (?:is ?|are ?)(<\w+>)\s*(.*)()/i, robot.factoid.set
-  robot.respond /(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
   robot.hear /^(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
-  robot.respond /(.*?)(<'s>)\s+(.*)()/i, robot.factoid.set
   robot.hear /^(.*?)(<'s>)\s+(.*)()/i, robot.factoid.setAdressed
-  robot.respond /(.*?)\s+(is(?: also)?|are)\s+(.*)/i, robot.factoid.set
   robot.hear /^(.*?)\s+(is(?: also)?|are)\s+(.*)/i, robot.factoid.setAddressed
+  robot.respond /(.*?) (?:is ?|are ?)(<\w+>)\s*(.*)()/i, robot.factoid.setAddressed
+  robot.respond /(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
+  robot.respond /(.*?)(<'s>)\s+(.*)()/i, robot.factoid.set
+  robot.respond /(.*?)\s+(is(?: also)?|are)\s+(.*)/i, robot.factoid.set
 
   ## FIXME, make these loaded once brain is loaded so it doesn't need to do wildcard match
   robot.hear /^(.*)\??$/, (msg) =>
