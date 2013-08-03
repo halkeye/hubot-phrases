@@ -51,6 +51,9 @@ module.exports = (robot) ->
       else if data.tidbits
         for tid in data.tidbits
           @tidbits.push tid
+    can_alias: (user) ->
+      # FIXME - op only commands according to bucket
+      return @can_edit user
     can_edit: (user) ->
       if user.roles
         if "edit_factoids" in user.roles
@@ -140,6 +143,10 @@ module.exports = (robot) ->
       target = robot.factoid.get target_name
       if !target
         msg.reply "Sorry, there is no factoid for the target '#{target_name}'."
+        return
+      if !target.can_alias msg.message.user
+        robot.logger.debug "#{factoid} that factoid is protected"
+        msg.reply "Sorry, that factoid is protected"
         return
       msg.finish()
       robot.logger.info "#{msg.message.user.name} aliased '#{src_name}' to '#{target_name}'"
