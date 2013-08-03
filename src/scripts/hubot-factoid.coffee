@@ -224,6 +224,7 @@ module.exports = (robot) ->
       return
     factoid.readonly = protect
     factoid.save()
+    msg.reply "Okay."
 
   robot.router.get "/#{robot.name}/factoid/:factoid", (req, res) ->
     factoid_name = req.params.factoid
