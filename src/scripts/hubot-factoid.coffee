@@ -211,6 +211,19 @@ module.exports = (robot) ->
     factoid = do robot.factoid.random
     robot.factoid.output msg, factoid
 
+  robot.respond /(un)?protect\s*(.*)$/, (msg) =>
+    protect = !msg.match[1]
+    factoid_name = msg.match[2].trim()
+    factoid = robot.factoid.get factoid_name
+    if !factoid
+      msg.reply "No such factoid"
+      return
+    msg.finish()
+    if factoid.readonly == protect
+      msg.reply "I already had it that way"
+      return
+    factoid.readonly = protect
+    factoid.save()
 
   robot.router.get "/#{robot.name}/factoid/:factoid", (req, res) ->
     factoid_name = req.params.factoid
