@@ -43,9 +43,9 @@ module.exports = (robot) ->
       @name = name
       @tidbits = []
       @alias = false
-      @readonly = false
-      if data.readonly
-        @readonly = true
+      @readonly = true
+      if data.readonly? && data.readonly == false
+        @readonly = false
       if data.alias
         @alias = data.alias
       else if data.tidbits
@@ -130,6 +130,23 @@ module.exports = (robot) ->
         msg.send "I am " + output
       else
         msg.send [factoid.name, tidbit.verb, output].join ' '
+    alias: (msg) =>
+      src_name = msg.match[1].trim()
+      target_name = msg.match[2].trim()
+      src = robot.factoid.get src_name
+      if src
+        msg.reply "Sorry, there is already a factoid for '#{src_name}'."
+        return
+      target = robot.factoid.get target_name
+      if !target
+        msg.reply "Sorry, there is no factoid for the target '#{target_name}'."
+        return
+      msg.finish()
+      robot.logger.info "#{msg.message.user.name} aliased '#{src_name}' to '#{target_name}'"
+      factoid = @facts[src_name] = new Factoid(src_name)
+      factoid.alias = target_name
+      factoid.save()
+      msg.reply "Okay."
     setAddressed: (msg) =>
       msg.message.addressed = true
       @set msg
@@ -225,6 +242,8 @@ module.exports = (robot) ->
     factoid.readonly = protect
     factoid.save()
     msg.reply "Okay."
+
+  robot.respond /alias (.*?) => (.*?)$/, robot.factoid.alias
 
   robot.router.get "/#{robot.name}/factoid/:factoid", (req, res) ->
     factoid_name = req.params.factoid
