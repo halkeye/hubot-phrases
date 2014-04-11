@@ -1,6 +1,14 @@
 'use strict'
+process.env.PORT = 0 # pick a random port for this test
+Hubot = require('hubot')
+Path = require('path')
+request = require('supertest')
+sinon = require('sinon')
 
-hubot_factoid = require('../scripts/hubot-factoid.js')
+adapterPath = Path.join Path.dirname(require.resolve 'hubot'), "src", "adapters"
+robot = Hubot.loadBot adapterPath, "shell", true, "MochaHubot"
+
+hubot_factoid = require('../scripts/hubot-factoid')(robot)
 
 ###
 ======== A Handy Little Mocha Reference ========
