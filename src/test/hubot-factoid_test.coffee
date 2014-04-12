@@ -106,7 +106,7 @@ send_message = (msg) ->
           robot.brain.once 'finished_loading_factoids', done
           robot.brain.emit 'loaded', robot.brain.data
 
-        ['is','are'].forEach (isare) ->
+        ['is','are','is also'].forEach (isare) ->
           describe "##{isare} something", ()->
             before () ->
               robot.adapter.send = sinon.spy()
@@ -118,8 +118,18 @@ send_message = (msg) ->
             it '#brain factoids updated', ()->
               robot.factoid.facts.should.not.be.empty
               robot.factoid.facts["#{isare}.something"].name.should.be.eql("#{isare}.something")
-              robot.factoid.facts["#{isare}.something"].tidbits.should.be.eql([ { tidbit: 'moocow', verb: isare } ])
+              robot.factoid.facts["#{isare}.something"].tidbits.should.be.eql([ { tidbit: 'moocow', verb: isare.replace(' also', '') } ])
               return
+
+
+
+
+
+
+
+
+
+
 ###
 robot.hear /^(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
 robot.hear /^(.*?)(<'s>)\s+(.*)()/i, robot.factoid.setAdressed
