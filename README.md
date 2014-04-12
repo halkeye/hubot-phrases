@@ -1,5 +1,8 @@
 # hubot-factoid
 
+[![Build Status](https://travis-ci.org/halkeye/hubot-factoid.png?branch=master)](https://travis-ci.org/halkeye/hubot-factoid)
+[![Dependency Status](https://gemnasium.com/halkeye/hubot-factoid.png)](https://gemnasium.com/halkeye/hubot-factoid)
+
 factoid (responses) support for hubot
 
 ## Getting Started
