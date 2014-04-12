@@ -97,6 +97,7 @@ module.exports = (robot) ->
           keys = Object.keys(data.factoids)
           for key in keys
             @facts[key] = new Factoid(key, data.factoids[key])
+        robot.brain.emit 'finished_loading_factoids'
     has_facts: () ->
       return Object.keys(@facts).length
     get: (str) ->
@@ -228,7 +229,6 @@ module.exports = (robot) ->
   robot.factoid = new FactoidHandler
 
   robot.respond /(?:do something|something random)$/, (msg) =>
-    factoid = do robot.factoid.random
     robot.factoid.output msg, factoid
 
   robot.hear /^(?:do something|something random)$/, (msg) =>

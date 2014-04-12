@@ -7,6 +7,7 @@ sinon = require('sinon')
 
 adapterPath = Path.join Path.dirname(require.resolve 'hubot'), "src", "adapters"
 robot = Hubot.loadBot adapterPath, "shell", true, "MochaHubot"
+{TextMessage} = require Path.join(adapterPath,'../message')
 
 hubot_factoid = require('../scripts/hubot-factoid')(robot)
 
@@ -60,9 +61,71 @@ Should assertions:
   user.should.be.a('object').and.have.property('name', 'tj')
 ###
 
-describe 'Awesome', ()->
-  describe '#of()', ()->
+user = {}
+send_message = (msg) ->
+  user = robot.brain.userForId '1', name: 'Shell', room: 'Shell'
+  robot.adapter.receive new TextMessage user, msg, 'messageId'
 
-    it 'awesome', ()->
-      hubot_factoid.awesome().should.eql('awesome')
+describe '#Commands', ()->
+  describe '#Randoms', ()->
+    before (done) ->
+      robot.brain.data.factoids = {
+        dammit:
+          readonly: false
+          tidbits: [
+            tidbit: "takes a quarter from $who and places it in the swear jar."
+            verb: "<action>"
+          ]
+      }
+      robot.brain.once 'finished_loading_factoids', done
+      robot.brain.emit('loaded', robot.brain.data)
 
+    describe '#something random', ()->
+      before () ->
+        robot.adapter.send = sinon.spy()
+        send_message "something random"
+      it '#outputs text', ()->
+        robot.adapter.send.args.should.not.be.empty
+        robot.adapter.send.args[0].should.not.be.empty
+      it '#outputs quarter', ()->
+        robot.adapter.send.args[0][1].should.eql("* takes a quarter from $who and places it in the swear jar.")
+    describe '#do something', ()->
+      before () ->
+        robot.adapter.send = sinon.spy()
+        send_message "do something"
+      it '#outputs text', ()->
+        robot.adapter.send.args.should.not.be.empty
+        robot.adapter.send.args[0].should.not.be.empty
+      it '#outputs quarter', ()->
+        robot.adapter.send.args[0][1].should.eql("* takes a quarter from $who and places it in the swear jar.")
+###
+    robot.adapter.send = sinon.spy()
+      endfunc = (err, res) ->
+        throw err if err
+        do done
+      request(robot.router)
+        .post(url)
+        .send(JSON.stringify(test.body))
+        .expect(200)
+        .end(endfunc)
+    hubot_factoid.awesome().should.eql('awesome')
+robot.hear /^(?:do something|something random)$/, (msg) =>
+robot.hear /^(.*?) (?:is ?|are ?)(<\w+>)\s*(.*)()/i, robot.factoid.set
+robot.hear /^(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
+robot.hear /^(.*?)(<'s>)\s+(.*)()/i, robot.factoid.setAdressed
+robot.hear /^(.*?)\s+(is(?: also)?|are)\s+(.*)/i, robot.factoid.setAddressed
+robot.hear /^(.*)\??$/, (msg) =>
+robot.respond /(?:do something|something random)$/, (msg) =>
+robot.respond /(un)?protect\s*(.*)$/, (msg) =>
+robot.respond /alias (.*?) => (.*?)$/, robot.factoid.alias
+robot.respond /literal(?:\[([*\d]+)\])?\s+(.*)$/, (msg) =>
+robot.respond /forget #(\d+)$/, (msg) =>
+robot.respond /forget that$/, (msg) =>
+robot.respond /forget (.*)#(\d+)$/, (msg) =>
+robot.respond /what was that\??$/, (msg) ->
+robot.respond /(.*?) (?:is ?|are ?)(<\w+>)\s*(.*)()/i, robot.factoid.setAddressed
+robot.respond /(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
+robot.respond /(.*?)(<'s>)\s+(.*)()/i, robot.factoid.set
+robot.respond /(.*?)\s+(is(?: also)?|are)\s+(.*)/i, robot.factoid.set
+robot.router.get "/#{robot.name}/factoid/:factoid", (req, res) ->
+###
