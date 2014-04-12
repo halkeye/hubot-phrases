@@ -116,12 +116,65 @@ describe '#Commands', ()->
             it '#outputs okay', ()->
               robot.adapter.send.args.should.not.be.empty
               robot.adapter.send.args[0].should.not.be.empty
-              robot.adapter.send.args[0][1].should.eql("Shell: Okay.")
+              robot.adapter.send.args[0][1].should.eql("#{user.name}: Okay.")
             it '#brain factoids updated', ()->
               robot.factoid.facts.should.not.be.empty
               robot.factoid.facts["#{isare}.something"].name.should.be.eql("#{isare}.something")
               robot.factoid.facts["#{isare}.something"].tidbits.should.be.eql([ { tidbit: 'moocow', verb: isare.replace(' also', '') } ])
               return
+  describe '#What was that', () ->
+    before (done) ->
+      robot.brain.data.factoids = {
+        dammit:
+          readonly: false
+          tidbits: [
+            tidbit: "takes a quarter from $who and places it in the swear jar."
+            verb: "<action>"
+          ]
+        rofl:
+          readonly: false
+          tidbits: [
+            tidbit: "I am also amused"
+            verb: "<reply>"
+          ]
+        lolalias:
+          readonly: false
+          alias: "rofl"
+      }
+      robot.brain.once 'finished_loading_factoids', done
+      robot.brain.emit('loaded', robot.brain.data)
+
+    describe '#basic', () ->
+      before () ->
+        robot.adapter.send = sinon.spy()
+        send_message "dammit"
+        send_message "#{robot.name}: what was that"
+      it 'responded at all', () ->
+        robot.adapter.send.args.should.not.be.empty
+      it 'responding to factoid', () ->
+        robot.adapter.send.args[0].should.not.be.empty
+        robot.adapter.send.args[0][1].should.eql("* takes a quarter from $who and places it in the swear jar.")
+      it 'responding to "what was that"', () ->
+        robot.adapter.send.args[1].should.not.be.empty
+        robot.adapter.send.args[1][1].should.eql("#{user.name}: That was \'dammit\' (#0): <action> takes a quarter from $who and places it in the swear jar.")
+
+    describe '#alias', () ->
+      before () ->
+        robot.adapter.send = sinon.spy()
+        send_message "lolalias"
+        send_message "#{robot.name}: what was that"
+      it 'responded at all', () ->
+        robot.adapter.send.args.should.not.be.empty
+      it 'responding to factoid', () ->
+        robot.adapter.send.args[0].should.not.be.empty
+        robot.adapter.send.args[0][1].should.eql("I am also amused")
+      it 'responding to "what was that"', () ->
+        robot.adapter.send.args[1].should.not.be.empty
+        robot.adapter.send.args[1][1].should.eql("#{user.name}: That was 'lolalias' => 'rofl' (#0): <reply> I am also amused")
+    # FIXME - keep track of alias in last_factoid as well
+    # halkeye: That was 'rofl' (#315): <reply> I am also amused
+    # halkeye: That was 'that's what she said' => 'thats what she said' (#65): <reply> No, that's what HE said.
+    # halkeye: That was 'give me a weapon' (#863): <action> gives $weapon to $who;  vars used: { 'weapon' => [ 'a Biggoron Sword' ]};.
 
 
 
@@ -131,23 +184,17 @@ describe '#Commands', ()->
 
 
 
-
-###
-robot.hear /^(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
-robot.hear /^(.*?)(<'s>)\s+(.*)()/i, robot.factoid.setAdressed
-robot.hear /^(.*?)\s+(is(?: also)?|are)\s+(.*)/i, robot.factoid.setAddressed
-robot.hear /^(.*)\??$/, (msg) =>
-robot.respond /(?:do something|something random)$/, (msg) =>
-robot.respond /(un)?protect\s*(.*)$/, (msg) =>
-robot.respond /alias (.*?) => (.*?)$/, robot.factoid.alias
-robot.respond /literal(?:\[([*\d]+)\])?\s+(.*)$/, (msg) =>
-robot.respond /forget #(\d+)$/, (msg) =>
-robot.respond /forget that$/, (msg) =>
-robot.respond /forget (.*)#(\d+)$/, (msg) =>
-robot.respond /what was that\??$/, (msg) ->
-robot.respond /(.*?) (?:is ?|are ?)(<\w+>)\s*(.*)()/i, robot.factoid.setAddressed
-robot.respond /(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
-robot.respond /(.*?)(<'s>)\s+(.*)()/i, robot.factoid.set
-robot.respond /(.*?)\s+(is(?: also)?|are)\s+(.*)/i, robot.factoid.set
-robot.router.get "/#{robot.name}/factoid/:factoid", (req, res) ->
-###
+#robot.hear /^(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
+#robot.hear /^(.*?)(<'s>)\s+(.*)()/i, robot.factoid.setAdressed
+#robot.hear /^(.*)\??$/, (msg) =>
+#robot.respond /(?:do something|something random)$/, (msg) =>
+#robot.respond /(un)?protect\s*(.*)$/, (msg) =>
+#robot.respond /alias (.*?) => (.*?)$/, robot.factoid.alias
+#robot.respond /literal(?:\[([*\d]+)\])?\s+(.*)$/, (msg) =>
+#robot.respond /forget #(\d+)$/, (msg) =>
+#robot.respond /forget that$/, (msg) =>
+#robot.respond /forget (.*)#(\d+)$/, (msg) =>
+#robot.respond /what was that\??$/, (msg) ->
+#robot.respond /(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
+#robot.respond /(.*?)(<'s>)\s+(.*)()/i, robot.factoid.set
+#robot.router.get "/#{robot.name}/factoid/:factoid", (req, res) ->

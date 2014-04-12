@@ -100,26 +100,23 @@ module.exports = (robot) ->
         robot.brain.emit 'finished_loading_factoids'
     has_facts: () ->
       return Object.keys(@facts).length
-    get: (str) ->
+    get: (str, history) ->
       return unless @has_facts()
       factoid = @facts[str]
       return unless factoid
       robot.logger.debug util.inspect factoid
-      return @get(factoid.alias) if factoid.alias
+      history.push factoid if history
+      return @get(factoid.alias, history) if factoid.alias
       return factoid
-    random: () ->
+    random: (history) ->
       return unless @has_facts()
       keys = Object.keys @facts
       factoid = keys[Math.floor(Math.random() * keys.length)]
-      return @get factoid
-    output: (msg, factoid) ->
+      return @get factoid, history
+    output: (msg, factoid, history) ->
       tidbit = factoid.tidbit()
       # FIXME this should be per room
-      last_factoid = {
-        factoid: factoid,
-        tidbit: tidbit
-      }
-
+      history.push { factoid: factoid, tidbit: tidbit } if history
       output = tidbit.tidbit
       if robot.variables?
         output = robot.variables.process output, msg.message.user
@@ -229,11 +226,16 @@ module.exports = (robot) ->
   robot.factoid = new FactoidHandler
 
   robot.respond /(?:do something|something random)$/, (msg) =>
+    history = []
+    factoid = robot.factoid.random history
     robot.factoid.output msg, factoid
+    last_factoid = history if history.length > 0
 
   robot.hear /^(?:do something|something random)$/, (msg) =>
-    factoid = do robot.factoid.random
+    history = []
+    factoid = robot.factoid.random history
     robot.factoid.output msg, factoid
+    last_factoid = history if history.length > 0
 
   robot.respond /(un)?protect\s*(.*)$/, (msg) =>
     protect = !msg.match[1]
@@ -310,24 +312,29 @@ module.exports = (robot) ->
   robot.respond /what was that\??$/, (msg) ->
     # FIXME this should be per room
     return unless last_factoid
+    msg.finish()
     # FIXME - keep track of alias in last_factoid as well
     # halkeye: That was 'rofl' (#315): <reply> I am also amused
     # halkeye: That was 'that's what she said' => 'thats what she said' (#65): <reply> No, that's what HE said.
     # halkeye: That was 'give me a weapon' (#863): <action> gives $weapon to $who;  vars used: { 'weapon' => [ 'a Biggoron Sword' ]};.
-    name = last_factoid.factoid.name
-    tidbit = last_factoid.tidbit
-    idx = last_factoid.factoid.tidbits.map((tid) -> tid.tidbit).indexOf(tidbit.tidbit)
+    lf = last_factoid.slice(-1)[0]
+    name = lf.factoid.name
+    tidbit = lf.tidbit
+    idx = lf.factoid.tidbits.map((tid) -> tid.tidbit).indexOf(tidbit.tidbit)
+
     response = []
     response.push "That was"
-    response.push "'$last_alias' => " if last_factoid.alias # FIXME - if alias
+    if last_factoid.length > 2
+      last_factoid.slice(0,-2).forEach (fact) ->
+        response.push "'#{fact.name}' =>"
     response.push "'" + name + "'"
-    response.push "(#"+idx+") "
+    response.push "(#"+idx+"):"
     response.push tidbit.verb
     response.push tidbit.tidbit
-    if last_factoid.last_vars # FIXME
+    if lf.last_vars # FIXME
       response.push ";"
       response.push "vars used:"
-      response.push util.inspect last_factoid.last_vars, { depth: null }
+      response.push util.inspect lf.last_vars, { depth: null }
     msg.reply response.join ' '
 
   robot.respond /(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
@@ -340,7 +347,9 @@ module.exports = (robot) ->
   ## FIXME, make these loaded once brain is loaded so it doesn't need to do wildcard match
   robot.hear /^(.*)\??$/, (msg) =>
     factoid_name = msg.match[1].trim()
-    factoid = robot.factoid.get factoid_name
+    history = []
+    factoid = robot.factoid.get factoid_name, history
     return unless factoid
-    robot.factoid.output msg, factoid
+    robot.factoid.output msg, factoid, history
+    last_factoid = history if history.length > 0
 
