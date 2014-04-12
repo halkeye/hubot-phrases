@@ -146,6 +146,7 @@ describe '#Commands', ()->
 
     describe '#basic', () ->
       before () ->
+        robot.factoid.last_factoid = null
         robot.adapter.send = sinon.spy()
         send_message "dammit"
         send_message "#{robot.name}: what was that"
@@ -158,8 +159,21 @@ describe '#Commands', ()->
         robot.adapter.send.args[1].should.not.be.empty
         robot.adapter.send.args[1][1].should.eql("#{user.name}: That was \'dammit\' (#0): <action> takes a quarter from $who and places it in the swear jar.")
 
+    describe '#something random', () ->
+      before () ->
+        robot.factoid.last_factoid = null
+        robot.adapter.send = sinon.spy()
+        send_message "something random"
+        send_message "#{robot.name}: what was that"
+      it 'responded at all', () ->
+        robot.adapter.send.args.should.not.be.empty
+      it 'responding to "what was that"', () ->
+        robot.adapter.send.args[1].should.not.be.empty
+        robot.adapter.send.args[1][1].should.match(new RegExp("^#{user.name}: That was"))
+
     describe '#alias', () ->
       before () ->
+        robot.factoid.last_factoid = null
         robot.adapter.send = sinon.spy()
         send_message "lolalias"
         send_message "#{robot.name}: what was that"
@@ -171,9 +185,6 @@ describe '#Commands', ()->
       it 'responding to "what was that"', () ->
         robot.adapter.send.args[1].should.not.be.empty
         robot.adapter.send.args[1][1].should.eql("#{user.name}: That was 'lolalias' => 'rofl' (#0): <reply> I am also amused")
-    # FIXME - keep track of alias in last_factoid as well
-    # halkeye: That was 'rofl' (#315): <reply> I am also amused
-    # halkeye: That was 'that's what she said' => 'thats what she said' (#65): <reply> No, that's what HE said.
     # halkeye: That was 'give me a weapon' (#863): <action> gives $weapon to $who;  vars used: { 'weapon' => [ 'a Biggoron Sword' ]};.
 
 
