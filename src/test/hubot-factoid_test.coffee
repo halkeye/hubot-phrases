@@ -66,69 +66,60 @@ send_message = (msg) ->
   user = robot.brain.userForId '1', name: 'Shell', room: 'Shell', roles: [ "edit_factoids" ]
   robot.adapter.receive new TextMessage user, msg, 'messageId'
 
-describe '#Commands', ()->
-  describe '#Randoms', ()->
-    before (done) ->
-      robot.brain.data.factoids = {
-        dammit:
-          readonly: false
-          tidbits: [
-            tidbit: "takes a quarter from $who and places it in the swear jar."
-            verb: "<action>"
-          ]
-      }
-      robot.brain.once 'finished_loading_factoids', done
-      robot.brain.emit('loaded', robot.brain.data)
+[['Addressed', "#{robot.name}: "], ['Not Addressed', '']].forEach (type) ->
+  describe type[0], ()->
+    describe '#Commands', ()->
+      describe '#Randoms', ()->
+        before (done) ->
+          robot.brain.data.factoids = {
+            dammit:
+              readonly: false
+              tidbits: [
+                tidbit: "takes a quarter from $who and places it in the swear jar."
+                verb: "<action>"
+              ]
+          }
+          robot.brain.once 'finished_loading_factoids', done
+          robot.brain.emit('loaded', robot.brain.data)
 
-    describe '#something random', ()->
-      before () ->
-        robot.adapter.send = sinon.spy()
-        send_message "something random"
-      it '#outputs text', ()->
-        robot.adapter.send.args.should.not.be.empty
-        robot.adapter.send.args[0].should.not.be.empty
-      it '#outputs quarter', ()->
-        robot.adapter.send.args[0][1].should.eql("* takes a quarter from $who and places it in the swear jar.")
-    describe '#do something', ()->
-      before () ->
-        robot.adapter.send = sinon.spy()
-        send_message "do something"
-      it '#outputs text', ()->
-        robot.adapter.send.args.should.not.be.empty
-        robot.adapter.send.args[0].should.not.be.empty
-      it '#outputs quarter', ()->
-        robot.adapter.send.args[0][1].should.eql("* takes a quarter from $who and places it in the swear jar.")
-  describe '#Adding', ()->
-    before (done) ->
-      robot.brain.data.factoids = {}
-      robot.brain.once 'finished_loading_factoids', done
-      robot.brain.emit('loaded', robot.brain.data)
+        describe '#something random', ()->
+          before () ->
+            robot.adapter.send = sinon.spy()
+            send_message "something random"
+          it '#outputs text', ()->
+            robot.adapter.send.args.should.not.be.empty
+            robot.adapter.send.args[0].should.not.be.empty
+          it '#outputs quarter', ()->
+            robot.adapter.send.args[0][1].should.eql("* takes a quarter from $who and places it in the swear jar.")
+        describe '#do something', ()->
+          before () ->
+            robot.adapter.send = sinon.spy()
+            send_message "do something"
+          it '#outputs text', ()->
+            robot.adapter.send.args.should.not.be.empty
+            robot.adapter.send.args[0].should.not.be.empty
+          it '#outputs quarter', ()->
+            robot.adapter.send.args[0][1].should.eql("* takes a quarter from $who and places it in the swear jar.")
+      describe '#Adding', ()->
+        before (done) ->
+          robot.brain.data.factoids = {}
+          robot.brain.once 'finished_loading_factoids', done
+          robot.brain.emit 'loaded', robot.brain.data
 
-    describe '#is something', ()->
-      before () ->
-        robot.adapter.send = sinon.spy()
-        send_message "is.something is moocow"
-      it '#outputs okay', ()->
-        robot.adapter.send.args.should.not.be.empty
-        robot.adapter.send.args[0].should.not.be.empty
-        robot.adapter.send.args[0][1].should.eql("Shell: Okay.")
-      it '#brain factoids updated', ()->
-        robot.factoid.facts.should.not.be.empty
-        robot.factoid.facts['is.something'].name.should.be.eql("is.something")
-        robot.factoid.facts['is.something'].tidbits.should.be.eql([ { tidbit: 'moocow', verb: 'is' } ])
-
-    describe '#are something', ()->
-      before () ->
-        robot.adapter.send = sinon.spy()
-        send_message "are.something are moocow"
-      it '#outputs okay', ()->
-        robot.adapter.send.args.should.not.be.empty
-        robot.adapter.send.args[0].should.not.be.empty
-        robot.adapter.send.args[0][1].should.eql("Shell: Okay.")
-      it '#brain factoids updated', ()->
-        robot.factoid.facts.should.not.be.empty
-        robot.factoid.facts['are.something'].name.should.be.eql("are.something")
-        robot.factoid.facts['are.something'].tidbits.should.be.eql([ { tidbit: 'moocow', verb: 'are' } ])
+        ['is','are'].forEach (isare) ->
+          describe "##{isare} something", ()->
+            before () ->
+              robot.adapter.send = sinon.spy()
+              send_message "#{type[1]}#{isare}.something #{isare} moocow"
+            it '#outputs okay', ()->
+              robot.adapter.send.args.should.not.be.empty
+              robot.adapter.send.args[0].should.not.be.empty
+              robot.adapter.send.args[0][1].should.eql("Shell: Okay.")
+            it '#brain factoids updated', ()->
+              robot.factoid.facts.should.not.be.empty
+              robot.factoid.facts["#{isare}.something"].name.should.be.eql("#{isare}.something")
+              robot.factoid.facts["#{isare}.something"].tidbits.should.be.eql([ { tidbit: 'moocow', verb: isare } ])
+              return
 ###
 robot.hear /^(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
 robot.hear /^(.*?)(<'s>)\s+(.*)()/i, robot.factoid.setAdressed

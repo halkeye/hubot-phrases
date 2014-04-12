@@ -35,8 +35,7 @@ module.exports = (grunt)->
           ignoreLeaks: false
           #grep: '**/*.js'
           ui: 'bdd'
-          #reporter: 'tap'
-          reporter: 'spec'
+          reporter: 'tap'
     watch:
       gruntfile:
         files: '<%= coffeelint.gruntfile.src %>'
