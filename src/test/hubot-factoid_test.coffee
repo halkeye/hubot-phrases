@@ -66,9 +66,11 @@ send_message = (msg) ->
   user = robot.brain.userForId '1', name: 'Shell', room: 'Shell', roles: [ "edit_factoids" ]
   robot.adapter.receive new TextMessage user, msg, 'messageId'
 
-[['Addressed', "#{robot.name}: "], ['Not Addressed', '']].forEach (type) ->
-  describe type[0], ()->
-    describe '#Commands', ()->
+robot.logger.info = sinon.spy()
+
+describe '#Commands', ()->
+  [['Addressed', "#{robot.name}: "], ['Not Addressed', '']].forEach (type) ->
+    describe type[0], ()->
       describe '#Randoms', ()->
         before (done) ->
           robot.brain.data.factoids = {
