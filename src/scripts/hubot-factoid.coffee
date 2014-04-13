@@ -115,11 +115,12 @@ module.exports = (robot) ->
       return @get factoid, history
     output: (msg, factoid, history) ->
       tidbit = factoid.tidbit()
+      output_history = { factoid: factoid, tidbit: tidbit }
       # FIXME this should be per room
-      history.push { factoid: factoid, tidbit: tidbit } if history
+      history.push output_history if history
       output = tidbit.tidbit
       if robot.variables?
-        output = robot.variables.process output, msg.message.user
+        output = robot.variables.process output, msg.message.user, output_history
       if tidbit.verb == "<reply>"
         msg.send output
       else if tidbit.verb == "<action>"
@@ -331,10 +332,10 @@ module.exports = (robot) ->
     response.push "(#"+idx+"):"
     response.push tidbit.verb
     response.push tidbit.tidbit
-    if lf.last_vars # FIXME
+    if lf.vars
       response.push ";"
       response.push "vars used:"
-      response.push util.inspect lf.last_vars, { depth: null }
+      response.push util.inspect lf.vars, { depth: null }
     msg.reply response.join ' '
 
   robot.respond /(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
