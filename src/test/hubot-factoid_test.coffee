@@ -41,7 +41,8 @@ describe '#Commands', ()->
         describe '#something random', ()->
           before () ->
             robot.adapter.send = sinon.spy()
-            send_message "something random"
+            #send_message "something random"
+            send_message "#{type[1]}something random"
           it '#outputs text', ()->
             robot.adapter.send.args.should.not.be.empty
             robot.adapter.send.args[0].should.not.be.empty
@@ -56,6 +57,49 @@ describe '#Commands', ()->
             robot.adapter.send.args[0].should.not.be.empty
           it '#outputs quarter', ()->
             robot.adapter.send.args[0][1].should.eql("* takes a quarter from $who and places it in the swear jar.")
+      describe '#literal', () ->
+        before (done) ->
+          robot.brain.data.factoids = {
+            dammit:
+              readonly: false
+              tidbits: [
+                {
+                  tidbit: "first tidbit"
+                  verb: "<action>"
+                },
+                {
+                  tidbit: "second tidbit"
+                  verb: "<reply>"
+                },
+              ]
+            really_long_one:
+              readonly: false
+              tidbits: []
+          }
+          [1..20].forEach (idx) ->
+            robot.brain.data.factoids['really_long_one'].tidbits.push({ tidbit: "blah #{idx}", verb: (idx % 2 ? "<reply>" : "<action>")})
+
+          robot.brain.once 'finished_loading_factoids', done
+          robot.brain.emit('loaded', robot.brain.data)
+        describe 'short literal', () ->
+          before () ->
+            robot.adapter.send = sinon.spy()
+            send_message "#{type[1]}literal dammit"
+          it 'responded at all', () ->
+            robot.adapter.send.args.should.not.be.empty
+          it 'responding to factoid', () ->
+            robot.adapter.send.args[0].should.not.be.empty
+            robot.adapter.send.args[0][1].should.eql("#{user.name}: dammit (2): <action> first tidbit|<reply> second tidbit")
+        describe 'long literal', () ->
+          before () ->
+            robot.adapter.send = sinon.spy()
+            send_message "#{type[1]}literal really_long_one"
+          it 'responded at all', () ->
+            robot.adapter.send.args.should.not.be.empty
+          it 'responding to factoid', () ->
+            robot.adapter.send.args[0].should.not.be.empty
+            match = new RegExp("^#{user.name}: .*#{robot.name}\/factoid/really_long_one$")
+            robot.adapter.send.args[0][1].should.match(match)
       describe '#Adding', ()->
         before (done) ->
           robot.brain.data.factoids = {}
@@ -76,6 +120,7 @@ describe '#Commands', ()->
               robot.factoid.facts["#{isare}.something"].name.should.be.eql("#{isare}.something")
               robot.factoid.facts["#{isare}.something"].tidbits.should.be.eql([ { tidbit: 'moocow', verb: isare.replace(' also', '') } ])
               return
+
   describe '#What was that', () ->
     before (done) ->
       robot.brain.data.factoids = {
@@ -163,7 +208,19 @@ describe '#Commands', ()->
       it 'responding to "what was that"', () ->
         robot.adapter.send.args[1].should.not.be.empty
         robot.adapter.send.args[1][1].should.eql("#{user.name}: That was 'variables' (#0): <reply> Hey, you are $who ; vars used: { who: '#{user.name}' }")
-    # halkeye: That was 'give me a weapon' (#863): <action> gives $weapon to $who;  vars used: { 'weapon' => [ 'a Biggoron Sword' ]};.
+
+  describe '#Literal', ()->
+    before (done) ->
+      robot.brain.data.factoids = {
+        dammit:
+          readonly: false
+          tidbits: [
+            tidbit: "takes a quarter from $who and places it in the swear jar."
+            verb: "<action>"
+          ]
+      }
+      robot.brain.once 'finished_loading_factoids', done
+      robot.brain.emit('loaded', robot.brain.data)
 
 
 

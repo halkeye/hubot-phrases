@@ -33,7 +33,6 @@
 util = require 'util'
 os = require 'os'
 
-# FIXME this should be per room
 module.exports = (robot) ->
   class Factoid
     constructor: (name, data) ->
@@ -223,6 +222,23 @@ module.exports = (robot) ->
       factoid.save()
       robot.logger.debug "#{msg.message.user.name} taught in #{msg.message.user.room} #{factoid.tidbits.length} '#{fact}', '#{verb}' '#{tidbit}'"
       msg.reply "Okay."
+    handler_literal: (msg) ->
+      # page - http://wiki.xkcd.com/irc/bucket#Listing_factoids
+      page = msg.match[1]
+      factoid_name = msg.match[2].trim()
+      factoid = robot.factoid.get factoid_name
+      if !factoid
+        msg.reply "No such factoid"
+        return
+      msg.finish()
+      if factoid.tidbits.length > 10
+        baseurl = (process.env.HUBOT_URL || 'http://' + os.hostname() + ':' + robot.server.address().port).replace(/\/+$/, '')
+        msg.reply baseurl + '/' + robot.name + '/factoid/' + encodeURIComponent(factoid_name)
+        return
+      response = []
+      factoid.tidbits.forEach (tidbit) ->
+        response.push "#{tidbit.verb} #{tidbit.tidbit}"
+      msg.reply "#{factoid.name} (#{factoid.tidbits.length}): #{response.join('|')}"
 
   robot.factoid = new FactoidHandler
   robot.factoid.last_factoid = null
@@ -274,16 +290,8 @@ module.exports = (robot) ->
     #res.send require('util').inspect(req.params)
 
 
-  robot.respond /literal(?:\[([*\d]+)\])?\s+(.*)$/, (msg) =>
-    # page - http://wiki.xkcd.com/irc/bucket#Listing_factoids
-    page = msg.match[1]
-    factoid_name = msg.match[2].trim()
-    factoid = robot.factoid.get factoid_name
-    if !factoid
-      msg.reply "No such factoid"
-      return
-    baseurl = (process.env.HUBOT_URL || 'http://' + os.hostname() + ':' + robot.server.address().port).replace(/\/+$/, '')
-    msg.reply baseurl + '/' + robot.name + '/factoid/' + encodeURIComponent(factoid_name)
+  robot.respond /literal(?:\[([*\d]+)\])?\s+(.*)$/, robot.factoid.handler_literal
+  robot.hear /^literal(?:\[([*\d]+)\])?\s+(.*)$/, robot.factoid.handler_literal
 
   robot.respond /forget #(\d+)$/, (msg) =>
     msg.reply "Sorry, syntax is now \"forget <factoid>#<index from 0>\" or \"forget that\""
@@ -348,6 +356,7 @@ module.exports = (robot) ->
   ## FIXME, make these loaded once brain is loaded so it doesn't need to do wildcard match
   robot.hear /^(.*)\??$/, (msg) =>
     factoid_name = msg.match[1].trim()
+    # FIXME this should be per room
     history = []
     factoid = robot.factoid.get factoid_name, history
     return unless factoid
