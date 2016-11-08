@@ -1,0 +1,5 @@
+--compilers coffee:coffee-script/register
+--require coffee-script
+-r should
+-R spec
+src/test/hubot-factoid_test.coffee
