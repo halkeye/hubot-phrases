@@ -45,6 +45,6 @@
     "coffeelint": "~1.2.0"
   },
   "keywords": [
-    "hubot"
+    "hubot", "hubot-scripts"
   ]
 }

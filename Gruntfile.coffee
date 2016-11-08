@@ -46,7 +46,7 @@ module.exports = (grunt)->
         files: '<%= coffeelint.scripts.src %>'
         tasks: ['coffeelint:scripts', 'simplemocha']
       coffeeTest:
-        files: '<%= coffeelint.test.src %>'
+        files: ['<%= coffeelint.test.src %>','node_modules/hubot-variables/src/scripts/*.coffee']
         tasks: [ 'coffeelint:test', 'simplemocha']
     clean: ['out/']
 
