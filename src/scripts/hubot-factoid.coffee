@@ -29,6 +29,7 @@
 #   halkeye
 
 'use strict'
+# coffeelint: disable=max_line_length
 
 util = require 'util'
 os = require 'os'
@@ -207,7 +208,7 @@ module.exports = (robot) ->
       factoid = @get fact
       if !factoid
         factoid = @facts[fact] = new Factoid(fact)
-      if !factoid.can_edit msg.message.user
+      else if !factoid.can_edit msg.message.user
         robot.logger.debug "#{factoid} that factoid is protected"
         msg.reply "Sorry, that factoid is protected"
         return

@@ -1,80 +1,98 @@
 'use strict'
+# coffeelint: disable=max_line_length
 process.env.PORT = 0 # pick a random port for this test
-Hubot = require('hubot')
-Path = require('path')
-request = require('supertest')
 sinon = require('sinon')
 
-adapterPath = Path.join Path.dirname(require.resolve 'hubot'), "src", "adapters"
-robot = Hubot.loadBot adapterPath, "shell", true, "MochaHubot"
-{TextMessage} = require Path.join(adapterPath,'../message')
+Helper = require('hubot-test-helper')
+# helper loads all scripts passed a directory
+helper = new Helper('../scripts')
 
-hubot_factoid = require('../scripts/hubot-factoid')(robot)
-
-user = {}
-send_message = (msg) ->
-  user = robot.brain.userForId '1', name: 'Shell', room: 'Shell', roles: [ "edit_factoids" ]
-  robot.adapter.receive new TextMessage user, msg, 'messageId'
-
-robot.logger.info = sinon.spy()
+prefixed = ->
+  return "#{@room.robot.name}: "
+unprefixed = ->
+  return ''
 
 describe '#Commands', ()->
-  [['Addressed', "#{robot.name}: "], ['Not Addressed', '']].forEach (type) ->
+  [['Addressed', prefixed], ['Not Addressed', unprefixed]].forEach (type) ->
     describe type[0], ()->
       describe '#Randoms', ()->
+        room = null
         before (done) ->
-          robot.brain.data.factoids = {
+          room = helper.createRoom()
+          room.robot.brain.data.factoids = {
             dammit:
               readonly: false
               tidbits: [
-                tidbit: "takes a quarter from $who and places it in the swear jar."
+                tidbit: "takes a quarter from $who" +
+                        " and places it in the swear jar."
                 verb: "<action>"
               ]
           }
-          robot.brain.once 'finished_loading_factoids', done
-          robot.brain.emit('loaded', robot.brain.data)
+          room.robot.brain.once 'finished_loading_factoids', done
+          room.robot.brain.emit 'loaded', room.robot.brain.data
+
+        after () ->
+          room.destroy()
+          room = null
 
         describe '#something random', ()->
           before () ->
-            robot.adapter.send = sinon.spy()
-            send_message "something random"
+            return room.user.say "halkeye", "something random"
+
           it '#outputs text', ()->
-            robot.adapter.send.args.should.not.be.empty
-            robot.adapter.send.args[0].should.not.be.empty
+            room.messages.should.not.be.empty
           it '#outputs quarter', ()->
-            robot.adapter.send.args[0][1].should.eql("* takes a quarter from $who and places it in the swear jar.")
+            room.messages.slice(-2).should.eql([
+              [ "halkeye", "something random" ],
+              [ "hubot", "takes a quarter from $who and places it in the swear jar." ]
+            ])
+            return
+
         describe '#do something', ()->
           before () ->
-            robot.adapter.send = sinon.spy()
-            send_message "do something"
+            return room.user.say "halkeye", "do something"
           it '#outputs text', ()->
-            robot.adapter.send.args.should.not.be.empty
-            robot.adapter.send.args[0].should.not.be.empty
+            room.messages.should.not.be.empty
           it '#outputs quarter', ()->
-            robot.adapter.send.args[0][1].should.eql("* takes a quarter from $who and places it in the swear jar.")
-      describe '#Adding', ()->
-        before (done) ->
-          robot.brain.data.factoids = {}
-          robot.brain.once 'finished_loading_factoids', done
-          robot.brain.emit 'loaded', robot.brain.data
+            room.messages.slice(-2).should.eql([
+              [ "halkeye", "do something" ],
+              [ "hubot", "takes a quarter from $who and places it in the swear jar." ]
+            ])
 
-        ['is','are','is also'].forEach (isare) ->
-          describe "##{isare} something", ()->
-            before () ->
-              robot.adapter.send = sinon.spy()
-              send_message "#{type[1]}#{isare}.something #{isare} moocow"
-            it '#outputs okay', ()->
-              robot.adapter.send.args.should.not.be.empty
-              robot.adapter.send.args[0].should.not.be.empty
-              robot.adapter.send.args[0][1].should.eql("#{user.name}: Okay.")
-            it '#brain factoids updated', ()->
-              robot.factoid.facts.should.not.be.empty
-              robot.factoid.facts["#{isare}.something"].name.should.be.eql("#{isare}.something")
-              robot.factoid.facts["#{isare}.something"].tidbits.should.be.eql([ { tidbit: 'moocow', verb: isare.replace(' also', '') } ])
+      describe '#Adding', ()->
+        ['is','are','is also'].forEach (isare) =>
+          describe "##{isare} something", ()=>
+            after () =>
+              @room.destroy()
+            before () =>
+              @room = helper.createRoom()
+              @room.robot.brain.data.factoids = {}
+              promise = new Promise (resolve) =>
+                @room.robot.brain.once 'finished_loading_factoids', resolve
+                @room.robot.brain.emit 'loaded', @room.robot.brain.data
+              promise.then =>
+                return @room.user.say(
+                  "halkeye", "#{type[1].call(this)}#{isare}.something #{isare} moocow"
+                )
+
+
+            it '#outputs okay', ()=>
+              @room.messages.should.eql([
+                ["halkeye", "#{type[1].call(this)}#{isare}.something #{isare} moocow"],
+                ["hubot", "@halkeye Okay."]
+              ])
+            it '#brain factoids updated', ()=>
+              @room.robot.factoid.facts.should.not.be.empty
+              @room.robot.factoid.facts["#{isare}.something"].name.should.be.eql("#{isare}.something")
+              @room.robot.factoid.facts["#{isare}.something"].tidbits.should.be.eql([ { tidbit: 'moocow', verb: isare.replace(' also', '') } ])
               return
+
   describe '#What was that', () ->
-    before (done) ->
-      robot.brain.data.factoids = {
+    afterEach () =>
+      @room.destroy()
+    beforeEach (done) =>
+      @room = helper.createRoom()
+      @room.robot.brain.data.factoids = {
         dammit:
           readonly: false
           tidbits: [
@@ -91,50 +109,54 @@ describe '#Commands', ()->
           readonly: false
           alias: "rofl"
       }
-      robot.brain.once 'finished_loading_factoids', done
-      robot.brain.emit('loaded', robot.brain.data)
+      @room.robot.brain.once 'finished_loading_factoids', done
+      @room.robot.brain.emit('loaded', @room.robot.brain.data)
 
-    describe '#basic', () ->
-      before () ->
-        robot.factoid.last_factoid = null
-        robot.adapter.send = sinon.spy()
-        send_message "dammit"
-        send_message "#{robot.name}: what was that"
-      it 'responded at all', () ->
-        robot.adapter.send.args.should.not.be.empty
-      it 'responding to factoid', () ->
-        robot.adapter.send.args[0].should.not.be.empty
-        robot.adapter.send.args[0][1].should.eql("* takes a quarter from $who and places it in the swear jar.")
-      it 'responding to "what was that"', () ->
-        robot.adapter.send.args[1].should.not.be.empty
-        robot.adapter.send.args[1][1].should.eql("#{user.name}: That was \'dammit\' (#0): <action> takes a quarter from $who and places it in the swear jar.")
+    describe '#basic', () =>
+      beforeEach () =>
+        @room.robot.factoid.last_factoid = null
+        return @room.user.say("halkeye", "dammit").then () =>
+          return @room.user.say "halkeye", "#{@room.robot.name}: what was that"
+      describe '', () =>
+        it 'responding to factoid', () =>
+          @room.messages.slice(0, 2).should.eql([
+            ["halkeye","dammit"],
+            ["hubot", "takes a quarter from $who and places it in the swear jar."]
+          ])
+        it 'responding to "what was that"', () =>
+          @room.messages.slice(-2).should.eql([
+            ["halkeye","hubot: what was that"],
+            ["hubot", "@halkeye That was \'dammit\' (#0): <action> takes a quarter from $who and places it in the swear jar."]
+          ])
 
-    describe '#something random', () ->
-      before () ->
-        robot.factoid.last_factoid = null
-        robot.adapter.send = sinon.spy()
-        send_message "something random"
-        send_message "#{robot.name}: what was that"
-      it 'responded at all', () ->
-        robot.adapter.send.args.should.not.be.empty
-      it 'responding to "what was that"', () ->
-        robot.adapter.send.args[1].should.not.be.empty
-        robot.adapter.send.args[1][1].should.match(new RegExp("^#{user.name}: That was"))
+    describe '#something random', () =>
+      beforeEach () =>
+        @room.robot.factoid.last_factoid = null
+        return @room.user.say("halkeye", "something random").then () =>
+          return @room.user.say "halkeye", "#{@room.robot.name}: what was that"
+      describe '', () =>
+        it 'responded at all', () =>
+          @room.messages.should.not.be.empty
+        it 'responding to "what was that"', () =>
+          @room.messages[3].should.not.be.empty
+          @room.messages[3][1].should.match(new RegExp("^@halkeye That was"))
 
-    describe '#alias', () ->
-      before () ->
-        robot.factoid.last_factoid = null
-        robot.adapter.send = sinon.spy()
-        send_message "lolalias"
-        send_message "#{robot.name}: what was that"
-      it 'responded at all', () ->
-        robot.adapter.send.args.should.not.be.empty
-      it 'responding to factoid', () ->
-        robot.adapter.send.args[0].should.not.be.empty
-        robot.adapter.send.args[0][1].should.eql("I am also amused")
-      it 'responding to "what was that"', () ->
-        robot.adapter.send.args[1].should.not.be.empty
-        robot.adapter.send.args[1][1].should.eql("#{user.name}: That was 'lolalias' => 'rofl' (#0): <reply> I am also amused")
+    describe '#alias', () =>
+      beforeEach () =>
+        @room.robot.factoid.last_factoid = null
+        return @room.user.say("halkeye", "lolalias").then () =>
+          return @room.user.say "halkeye", "#{@room.robot.name}: what was that"
+      describe '', () =>
+        it 'responded at all', () =>
+          @room.messages.should.not.be.empty
+        it 'responding to factoid', () =>
+          @room.messages.slice(0, 2).should.eql([
+            ["halkeye","lolalias"],
+            ["hubot", "I am also amused"]
+          ])
+        it 'responding to "what was that"', () =>
+          @room.messages[3].should.not.be.empty
+          @room.messages[3][1].should.eql("@halkeye That was 'lolalias' => 'rofl' (#0): <reply> I am also amused")
     # halkeye: That was 'give me a weapon' (#863): <action> gives $weapon to $who;  vars used: { 'weapon' => [ 'a Biggoron Sword' ]};.
 
 
@@ -158,4 +180,4 @@ describe '#Commands', ()->
 #robot.respond /what was that\??$/, (msg) ->
 #robot.respond /(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
 #robot.respond /(.*?)(<'s>)\s+(.*)()/i, robot.factoid.set
-#robot.router.get "/#{robot.name}/factoid/:factoid", (req, res) ->
+#robot.router.get "/#{@room.robot.name}/factoid/:factoid", (req, res) ->
