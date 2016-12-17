@@ -1,0 +1,66 @@
+module.exports = function(grunt) {
+  'use strict';
+
+  // Project configuration.
+  grunt.initConfig({
+    pkg: grunt.file.readJSON('package.json'),
+    jshint: {
+      options: {
+        jshintrc: '.jshintrc'
+      },
+      scripts: {
+        src: ['src/scripts/**/*.js']
+      },
+      test: {
+        src: ['src/test/**/*.js']
+      }
+    },
+    simplemocha: {
+      all: {
+        src: [
+          'node_modules/should/should.js',
+          'src/test/**/*.coffee'
+        ],
+        options: {
+          globals: ['should'],
+          timeout: 3000,
+          ignoreLeaks: false,
+          //grep: '**/*.js'
+          ui: 'bdd',
+          bail: true,
+          //reporter: 'tap'
+          reporter: 'spec'
+        }
+      }
+    },
+    watch: {
+      gruntfile: {
+        files: '<%= coffeelint.gruntfile.src %>',
+        tasks: ['coffeelint:gruntfile']
+      },
+      coffeeLib: {
+        files: '<%= coffeelint.scripts.src %>',
+        tasks: ['coffeelint:scripts', 'simplemocha']
+      },
+      coffeeTest: {
+        files: ['<%= coffeelint.test.src %>','node_modules/hubot-variables/src/scripts/*.coffee'],
+        tasks: [ 'coffeelint:test', 'simplemocha']
+      }
+    },
+    clean: ['out/']});
+
+  // plugins.
+  grunt.loadNpmTasks('grunt-simple-mocha');
+  grunt.loadNpmTasks('grunt-coffeelint');
+  grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+
+  // tasks.
+  grunt.registerTask('compile', [
+    'coffeelint'
+  ]);
+
+  grunt.registerTask('test', [ 'simplemocha' ]);
+  return grunt.registerTask('default', ['compile', 'test']);
+};
+

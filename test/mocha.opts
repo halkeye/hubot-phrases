@@ -2,4 +2,4 @@
 --require coffee-script
 -r should
 -R spec
-src/test/hubot-factoid_test.coffee
+src/test
