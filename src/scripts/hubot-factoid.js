@@ -31,9 +31,9 @@
 const util = require('util');
 const os = require('os');
 
-module.exports = function Plugin(robot) {
+module.exports = function Plugin (robot) {
   class Factoid {
-    constructor(name, data) {
+    constructor (name, data) {
       if (!data) {
         data = {};
       }
@@ -52,13 +52,13 @@ module.exports = function Plugin(robot) {
         }
       }
     }
-    can_alias(user) {
+    canAlias (user) {
       // FIXME - op only commands according to bucket
-      return this.can_edit(user);
+      return this.canEdit(user);
     }
-    can_edit(user) {
+    canEdit (user) {
       if (user.roles) {
-        if (user.roles.includes("edit_factoids")) {
+        if (user.roles.includes('edit_factoids')) {
           return true;
         }
         if (user.roles.includes(`edit_factoid_${this.name}`)) {
@@ -70,10 +70,10 @@ module.exports = function Plugin(robot) {
       }
       return true;
     }
-    tidbit() {
+    tidbit () {
       return this.tidbits[Math.floor(Math.random() * this.tidbits.length)];
     }
-    add_tidbit(tidbit, verb) {
+    addTidbit (tidbit, verb) {
       // FIXME - add validation
       return this.tidbits.push({
         tidbit,
@@ -81,11 +81,11 @@ module.exports = function Plugin(robot) {
       });
     }
 
-    to_obj() {
+    toObj () {
       if (this.alias) {
         return {
           alias: this.alias,
-          readonly: this.readonly,
+          readonly: this.readonly
         };
       }
       return {
@@ -93,14 +93,13 @@ module.exports = function Plugin(robot) {
         tidbits: this.tidbits
       };
     }
-    save() {
-      return robot.brain.data.factoids[this.name] = this.to_obj();
+    save () {
+      robot.brain.data.factoids[this.name] = this.toObj();
     }
   }
 
-
   class FactoidHandler {
-    constructor() {
+    constructor () {
       this.alias = this.alias.bind(this);
       this.setAddressed = this.setAddressed.bind(this);
       this.set = this.set.bind(this);
@@ -110,7 +109,7 @@ module.exports = function Plugin(robot) {
       robot.brain.on('loaded', data => {
         this.facts = {};
         if (robot.brain.data.factoids) {
-          robot.logger.info("Loading saved factoids");
+          robot.logger.info('Loading saved factoids');
           let keys = Object.keys(data.factoids);
           for (let key of keys) {
             this.facts[key] = new Factoid(key, data.factoids[key]);
@@ -120,11 +119,11 @@ module.exports = function Plugin(robot) {
       }
       );
     }
-    has_facts() {
+    hasFacts () {
       return Object.keys(this.facts).length;
     }
-    get(str, history) {
-      if (!this.has_facts()) { return; }
+    get (str, history) {
+      if (!this.hasFacts()) { return; }
       let factoid = this.facts[str];
       if (!factoid) { return; }
       robot.logger.debug(util.inspect(factoid));
@@ -132,102 +131,103 @@ module.exports = function Plugin(robot) {
       if (factoid.alias) { return this.get(factoid.alias, history); }
       return factoid;
     }
-    random(history) {
-      if (!this.has_facts()) { return; }
+    random (history) {
+      if (!this.hasFacts()) { return; }
       let keys = Object.keys(this.facts);
       let factoid = keys[Math.floor(Math.random() * keys.length)];
       return this.get(factoid, history);
     }
-    output(msg, factoid, history) {
+    output (msg, factoid, history) {
       let tidbit = factoid.tidbit();
-      let output_history = { factoid, tidbit };
+      let outputHistory = { factoid, tidbit };
       // FIXME this should be per room
-      if (history) { history.push(output_history); }
+      if (history) { history.push(outputHistory); }
       let output = tidbit.tidbit;
       if (robot.variables != null) {
-        output = robot.variables.process(output, msg.message.user, output_history);
+        output = robot.variables.process(output, msg.message.user, outputHistory);
       }
-      if (tidbit.verb === "<reply>") {
+      if (tidbit.verb === '<reply>') {
         return msg.send(output);
-      } else if (tidbit.verb === "<action>") {
+      } else if (tidbit.verb === '<action>') {
         if (msg.emote != null) {
           return msg.emote(output);
         } else {
           return msg.send(`/me ${output}`);
         }
-      } else if (tidbit.verb === "is" && factoid.name.toLowerCase() === robot.name.toLowerCase()) {
+      } else if (tidbit.verb === 'is' && factoid.name.toLowerCase() === robot.name.toLowerCase()) {
         return msg.send(`I am ${output}`);
       } else {
         return msg.send([factoid.name, tidbit.verb, output].join(' '));
       }
     }
-    alias(msg) {
-      let src_name = msg.match[1].trim();
-      let target_name = msg.match[2].trim();
-      let src = robot.factoid.get(src_name);
+    alias (msg) {
+      let srcName = msg.match[1].trim();
+      let targetName = msg.match[2].trim();
+      let src = robot.factoid.get(srcName);
       if (src) {
-        msg.reply(`Sorry, there is already a factoid for '${src_name}'.`);
+        msg.reply(`Sorry, there is already a factoid for '${srcName}'.`);
         return;
       }
-      let target = robot.factoid.get(target_name);
+      let target = robot.factoid.get(targetName);
       if (!target) {
-        msg.reply(`Sorry, there is no factoid for the target '${target_name}'.`);
+        msg.reply(`Sorry, there is no factoid for the target '${targetName}'.`);
         return;
       }
-      if (!target.can_alias(msg.message.user)) {
+      if (!target.canAlias(msg.message.user)) {
         robot.logger.debug(`${factoid} that factoid is protected`);
-        msg.reply("Sorry, that factoid is protected");
+        msg.reply('Sorry, that factoid is protected');
         return;
       }
       msg.finish();
-      robot.logger.info(`${msg.message.user.name} aliased '${src_name}' to '${target_name}'`);
-      var factoid = this.facts[src_name] = new Factoid(src_name);
-      factoid.alias = target_name;
+      robot.logger.info(`${msg.message.user.name} aliased '${srcName}' to '${targetName}'`);
+      var factoid = this.facts[srcName] = new Factoid(srcName);
+      factoid.alias = targetName;
       factoid.save();
-      return msg.reply("Okay.");
+      return msg.reply('Okay.');
     }
-    setAddressed(msg) {
+    setAddressed (msg) {
       msg.message.addressed = true;
       return this.set(msg);
     }
-    set(msg) {
+    set (msg) {
       msg.finish(); // we are adding a message, so ignore any other handler type
       let fact = msg.match[1].trim();
       let verb = msg.match[2].trim();
       let tidbit = msg.match[3].trim();
       let forced = !!msg.match[4];
       if (!msg.message.addressed && /^[^a-zA-Z]*<.?\S+>/.test(fact)) {
-        robot.logger.debug("Not learning from what seems to be an IRC quote: $fact");
+        robot.logger.debug('Not learning from what seems to be an IRC quote: $fact');
         return;
       }
-      if (!msg.message.addressed && !forced && /\=~/.test(fact)) {
-        robot.logger.debug("Not learning what looks like a botched =~ query");
-        msg.reply("Fix your =~ command.");
+      if (!msg.message.addressed && !forced && /=~/.test(fact)) {
+        robot.logger.debug('Not learning what looks like a botched =~ query');
+        msg.reply('Fix your =~ command.');
         return;
       }
 
       if (fact === 'you' && verb === 'are') {
         fact = robot.name;
-        verb = "is";
-      } else if (fact === "I" && verb === "am") {
+        verb = 'is';
+      } else if (fact === 'I' && verb === 'am') {
         fact = msg.message.user.name;
-        verb = "is";
+        verb = 'is';
       }
 
       this.stats.learn++;
       let matches = tidbit.match(/^<(action|reply)>\s*(.*)/);
+      var also;
       if (matches) {
         verb = `<${matches[1]}>`;
         tidbit = matches[2];
-      } else if (verb === "is also") {
-        var also = 1;
-        verb = "is";
+      } else if (verb === 'is also') {
+        also = 1;
+        verb = 'is';
       } else if (forced) {
-        if (verb !== "<action>" && verb !== "<reply>") {
-          verb = verb.replace(/^<|>$/,'');
+        if (verb !== '<action>' && verb !== '<reply>') {
+          verb = verb.replace(/^<|>$/, '');
         }
         if (/\sis\salso$/.test(fact)) {
-          var also = 1;
+          also = 1;
         } else {
           fact.replace(/\sis$/, '');
         }
@@ -241,7 +241,7 @@ module.exports = function Plugin(robot) {
       fact = fact.trim();
       robot.logger.debug(`Learning ${fact} ${verb} ${tidbit}`);
 
-      if (fact.toLowerCase() === msg.message.user.name.toLowerCase() || fact.toLowerCase() === msg.message.user.name.toLowerCase() + " quotes") {
+      if (fact.toLowerCase() === msg.message.user.name.toLowerCase() || fact.toLowerCase() === msg.message.user.name.toLowerCase() + ' quotes') {
         robot.logger.debug(`Not allowing ${msg.message.user.name} to edit his own factoid`);
         msg.reply("Please don't edit your own factoids.");
         return;
@@ -250,38 +250,38 @@ module.exports = function Plugin(robot) {
       let factoid = this.get(fact);
       if (!factoid) {
         factoid = this.facts[fact] = new Factoid(fact);
-      } else if (!factoid.can_edit(msg.message.user)) {
+      } else if (!factoid.canEdit(msg.message.user)) {
         robot.logger.debug(`${factoid} that factoid is protected`);
-        msg.reply("Sorry, that factoid is protected");
+        msg.reply('Sorry, that factoid is protected');
         return;
       }
 
       for (let t of factoid.tidbits) {
         if (tidbit.toLowerCase() === t.tidbit.toLowerCase()) {
-          msg.reply("I already had it that way");
+          msg.reply('I already had it that way');
           return;
         }
       }
 
-      factoid.add_tidbit(tidbit, verb);
+      factoid.addTidbit(tidbit, verb);
       factoid.tidbits.push;
       factoid.save();
       robot.logger.debug(`${msg.message.user.name} taught in ${msg.message.user.room} ${factoid.tidbits.length} '${fact}', '${verb}' '${tidbit}'`);
-      return msg.reply("Okay.");
+      return msg.reply('Okay.');
     }
-    handler_literal(msg) {
+    handlerLiteral (msg) {
       // page - http://wiki.xkcd.com/irc/bucket#Listing_factoids
       let page = msg.match[1];
-      let factoid_name = msg.match[2].trim();
-      let factoid = robot.factoid.get(factoid_name);
+      let factoidName = msg.match[2].trim();
+      let factoid = robot.factoid.get(factoidName);
       if (!factoid) {
-        msg.reply("No such factoid");
+        msg.reply('No such factoid');
         return;
       }
       msg.finish();
       if (factoid.tidbits.length > 10) {
         let baseurl = (process.env.HUBOT_URL || (`http://${os.hostname()}:${robot.server.address().port}`)).replace(/\/+$/, '');
-        msg.reply(baseurl + '/' + robot.name + '/factoid/' + encodeURIComponent(factoid_name));
+        msg.reply(baseurl + '/' + robot.name + '/factoid/' + encodeURIComponent(factoidName));
         return;
       }
       let response = [];
@@ -290,94 +290,91 @@ module.exports = function Plugin(robot) {
     }
   }
 
-  robot.factoid = new FactoidHandler;
+  robot.factoid = new FactoidHandler();
   robot.factoid.last_factoid = null;
 
   robot.respond(/(?:do something|something random)$/, msg => {
     let history = [];
     let factoid = robot.factoid.random(history);
     robot.factoid.output(msg, factoid, history);
-    if (history.length > 0) { return robot.factoid.last_factoid = history; }
-  }
-  );
+    if (history.length > 0) { robot.factoid.last_factoid = history; }
+  });
 
   robot.hear(/^(?:do something|something random)$/, msg => {
     let history = [];
     let factoid = robot.factoid.random(history);
     robot.factoid.output(msg, factoid, history);
-    if (history.length > 0) { return robot.factoid.last_factoid = history; }
-  }
-  );
+    if (history.length > 0) { robot.factoid.last_factoid = history; }
+  });
 
   robot.respond(/(un)?protect\s*(.*)$/, msg => {
     let protect = !msg.match[1];
-    let factoid_name = msg.match[2].trim();
-    let factoid = robot.factoid.get(factoid_name);
+    let factoidName = msg.match[2].trim();
+    let factoid = robot.factoid.get(factoidName);
     if (!factoid) {
-      msg.reply("No such factoid");
+      msg.reply('No such factoid');
       return;
     }
     msg.finish();
     if (factoid.readonly === protect) {
-      msg.reply("I already had it that way");
+      msg.reply('I already had it that way');
       return;
     }
     factoid.readonly = protect;
     factoid.save();
-    return msg.reply("Okay.");
+    return msg.reply('Okay.');
   }
   );
 
   robot.respond(/alias (.*?) => (.*?)$/, robot.factoid.alias);
 
-  robot.router.get(`/${robot.name}/factoid/:factoid`, function(req, res) {
+  robot.router.get(`/${robot.name}/factoid/:factoid`, function (req, res) {
     let left;
-    let factoid_name = req.params.factoid;
-    if (!factoid_name) { return res.status(404).send('Not Found'); }
-    let factoid = robot.factoid.get(factoid_name);
+    let factoidName = req.params.factoid;
+    if (!factoidName) { return res.status(404).send('Not Found'); }
+    let factoid = robot.factoid.get(factoidName);
     if (!factoid) { return res.status(404).send('Not Found'); }
     res.setHeader('content-type', 'text/plain');
     let content = [];
-    content.push(`Factoid: [${factoid_name}]`);
-    content.push((left = `Protected: ${factoid.readonly}`) != null ? left : {"true" : "false"});
-    content.push("");
-    content.push("Tidbits:");
+    content.push(`Factoid: [${factoidName}]`);
+    content.push((left = `Protected: ${factoid.readonly}`) != null ? left : {'true': 'false'});
+    content.push('');
+    content.push('Tidbits:');
     for (let tidbit of factoid.tidbits) {
-      content.push(tidbit.verb + "|" + tidbit.tidbit);
+      content.push(tidbit.verb + '|' + tidbit.tidbit);
     }
-    res.send(content.join("\n"));
+    res.send(content.join('\n'));
     return res.end;
   });
-    //res.send require('util').inspect(req.params)
+    // res.send require('util').inspect(req.params)
 
-
-  robot.respond(/literal(?:\[([*\d]+)\])?\s+(.*)$/, robot.factoid.handler_literal);
-  robot.hear(/^literal(?:\[([*\d]+)\])?\s+(.*)$/, robot.factoid.handler_literal);
+  robot.respond(/literal(?:\[([*\d]+)\])?\s+(.*)$/, robot.factoid.handlerLiteral);
+  robot.hear(/^literal(?:\[([*\d]+)\])?\s+(.*)$/, robot.factoid.handlerLiteral);
 
   robot.respond(/forget #(\d+)$/, msg => {
-    return msg.reply("Sorry, syntax is now \"forget <factoid>#<index from 0>\" or \"forget that\"");
+    return msg.reply('Sorry, syntax is now "forget <factoid>#<index from 0>" or "forget that"');
   }
   );
 
   robot.respond(/forget that$/, msg => {
-    return msg.reply("FIXME - not implemented yet");
+    return msg.reply('FIXME - not implemented yet');
   }
   );
 
   robot.respond(/forget (.*)#(\d+)$/, msg => {
-    let factoid_name = msg.match[1].trim();
-    let tid = parseInt(msg.match[2], 10)-1;
-    let factoid = robot.factoid.get(factoid_name);
+    let factoidName = msg.match[1].trim();
+    let tid = parseInt(msg.match[2], 10) - 1;
+    let factoid = robot.factoid.get(factoidName);
     if (!factoid) {
-      msg.reply("No such factoid");
+      msg.reply('No such factoid');
       return;
     }
-    if (!factoid.can_edit(msg.message.user)) {
+    if (!factoid.canEdit(msg.message.user)) {
       msg.reply(`Sorry, you don't have permissions to edit '${factoid.name}'.`);
       return;
     }
     if (tid < 0) {
-      msg.reply("Sorry, you must provide a number greater than 0 (as this is 1 based)");
+      msg.reply('Sorry, you must provide a number greater than 0 (as this is 1 based)');
       return;
     }
     if (!factoid.tidbits[tid]) {
@@ -390,7 +387,7 @@ module.exports = function Plugin(robot) {
   }
   );
 
-  robot.respond(/what was that\??$/, function(msg) {
+  robot.respond(/what was that\??$/, function (msg) {
     // FIXME this should be per room
     if (!robot.factoid.last_factoid) { return; }
     msg.finish();
@@ -403,17 +400,17 @@ module.exports = function Plugin(robot) {
     let idx = lf.factoid.tidbits.map(tid => tid.tidbit).indexOf(tidbit.tidbit);
 
     let response = [];
-    response.push("That was");
+    response.push('That was');
     if (robot.factoid.last_factoid.length > 2) {
-      robot.factoid.last_factoid.slice(0,-2).forEach(fact => response.push(`'${fact.name}' =>`));
+      robot.factoid.last_factoid.slice(0, -2).forEach(fact => response.push(`'${fact.name}' =>`));
     }
     response.push(`'${name}'`);
     response.push(`(#${idx}):`);
     response.push(tidbit.verb);
     response.push(tidbit.tidbit);
     if (lf.vars) {
-      response.push(";");
-      response.push("vars used:");
+      response.push(';');
+      response.push('vars used:');
       response.push(util.inspect(lf.vars, { depth: null }));
     }
     return msg.reply(response.join(' '));
@@ -426,15 +423,15 @@ module.exports = function Plugin(robot) {
   robot.hear(/^(.*?)(<'s>)\s+(.*)()/i, robot.factoid.set);
   robot.hear(/^(.*?)\s+(is(?: also)?|are)\s+(.*)/i, robot.factoid.set);
 
-  //# FIXME, make these loaded once brain is loaded so it doesn't need to do wildcard match
+  // # FIXME, make these loaded once brain is loaded so it doesn't need to do wildcard match
   return robot.hear(/^(.*)\??$/, msg => {
-    let factoid_name = msg.match[1].trim();
+    let factoidName = msg.match[1].trim();
     // FIXME this should be per room
     let history = [];
-    let factoid = robot.factoid.get(factoid_name, history);
+    let factoid = robot.factoid.get(factoidName, history);
     if (!factoid) { return; }
     robot.factoid.output(msg, factoid, history);
-    if (history.length > 0) { return robot.factoid.last_factoid = history; }
+    if (history.length > 0) { robot.factoid.last_factoid = history; }
   }
   );
 };
