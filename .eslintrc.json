@@ -1,0 +1,19 @@
+{
+    "extends": "standard",
+    "installedESLint": true,
+    "parserOptions": {
+        "ecmaVersion": 8,
+        "sourceType": "module"
+    },
+    "rules": {
+      "semi": [ "error", "always" ]
+    },
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "plugins": [
+        "standard",
+        "promise"
+    ]
+}
