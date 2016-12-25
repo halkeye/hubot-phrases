@@ -3,9 +3,38 @@ process.env.PORT = 0; // pick a random port for this test
 const Helper = require('hubot-test-helper');
 // helper loads all scripts passed a directory
 const helper = new Helper('../scripts');
+const co = require('co');
+const request = require('supertest-as-promised');
 
 let prefixed = () => `${this.room.robot.name}: `;
 let unprefixed = () => '';
+
+function setupBrain (room, done) {
+  room.robot.brain.data.factoids = {
+    readonly: {
+      readonly: true,
+      tidbits: [{ tidbit: 'readonly.', verb: '<action>' }]
+    },
+    single: {
+      readonly: false,
+      tidbits: [{ tidbit: 'takes a quarter from $who and places it in the swear jar.', verb: '<action>' }]
+    },
+    multiple: {
+      readonly: false,
+      tidbits: [
+        { tidbit: 'response 1.', verb: '<action>' },
+        { tidbit: 'response 2.', verb: '<reply>' }
+      ]
+    },
+    rofl: {
+      readonly: false,
+      tidbits: [{ tidbit: 'I am also amused', verb: '<reply>' }]
+    },
+    lolalias: { readonly: false, alias: 'rofl' }
+  };
+  room.robot.brain.once('finished_loading_factoids', done);
+  room.robot.brain.emit('loaded', room.robot.brain.data);
+}
 
 describe('#Commands', () => {
   [['Addressed', prefixed], ['Not Addressed', unprefixed]].forEach(type =>
@@ -230,30 +259,7 @@ describe('#Commands', () => {
     afterEach(function () { this.room.destroy(); });
     beforeEach(function (done) {
       this.room = helper.createRoom();
-      this.room.robot.brain.data.factoids = {
-        readonly: {
-          readonly: true,
-          tidbits: [{ tidbit: 'readonly.', verb: '<action>' }]
-        },
-        word: {
-          readonly: false,
-          tidbits: [{ tidbit: 'takes a quarter from $who and places it in the swear jar.', verb: '<action>' }]
-        },
-        multiple: {
-          readonly: false,
-          tidbits: [
-            { tidbit: 'response 1.', verb: '<action>' },
-            { tidbit: 'response 2.', verb: '<reply>' }
-          ]
-        },
-        rofl: {
-          readonly: false,
-          tidbits: [{ tidbit: 'I am also amused', verb: '<reply>' }]
-        },
-        lolalias: { readonly: false, alias: 'rofl' }
-      };
-      this.room.robot.brain.once('finished_loading_factoids', done);
-      this.room.robot.brain.emit('loaded', this.room.robot.brain.data);
+      setupBrain(this.room, done);
     });
     describe('old delete syntax', function () {
       beforeEach(function () {
@@ -268,34 +274,34 @@ describe('#Commands', () => {
     });
     describe('deleting the only tidbit', function () {
       beforeEach(function () {
-        return this.room.user.say('halkeye', 'hubot forget word#1');
+        return this.room.user.say('halkeye', 'hubot forget single#1');
       });
       it('respond something', function () {
         this.room.messages.should.eql([
-          ['halkeye', 'hubot forget word#1'],
+          ['halkeye', 'hubot forget single#1'],
           ['hubot', '@halkeye Deleted tidbit: <action>|takes a quarter from $who and places it in the swear jar.']
         ]);
-        this.room.robot.brain.data.factoids.should.not.have.property('word');
+        this.room.robot.brain.data.factoids.should.not.have.property('single');
       });
     });
     describe('deleting 0 based tidbit', function () {
       beforeEach(function () {
-        return this.room.user.say('halkeye', 'hubot forget word#0');
+        return this.room.user.say('halkeye', 'hubot forget single#0');
       });
       it('respond something', function () {
         this.room.messages.should.eql([
-          ['halkeye', 'hubot forget word#0'],
+          ['halkeye', 'hubot forget single#0'],
           ['hubot', '@halkeye Sorry, you must provide a number greater than 0 (as this is 1 based)']
         ]);
       });
     });
     describe('deleting missing based tidbit', function () {
       beforeEach(function () {
-        return this.room.user.say('halkeye', 'hubot forget word#8');
+        return this.room.user.say('halkeye', 'hubot forget single#8');
       });
       it('respond something', function () {
         this.room.messages.should.eql([
-          ['halkeye', 'hubot forget word#8'],
+          ['halkeye', 'hubot forget single#8'],
           ['hubot', "@halkeye Can't find tidbit #8"]
         ]);
       });
@@ -337,6 +343,23 @@ describe('#Commands', () => {
         this.room.robot.brain.data.factoids.readonly.should.have.property('tidbits');
       });
     });
+  });
+  describe('#url', function () {
+    afterEach(function () { this.room.destroy(); });
+    beforeEach(function (done) {
+      this.room = helper.createRoom();
+      setupBrain(this.room, done);
+    });
+    it('lookup existing factoid', co.wrap(function *() {
+      const res = yield request(this.room.robot.server)
+        .get('/hubot/factoid/single');
+      res.text.should.eql('Factoid: [single]\nProtected: false\n\nTidbits:\n<action>|takes a quarter from $who and places it in the swear jar.');
+    }));
+    it('lookup missing factoid', co.wrap(function *() {
+      const res = yield request(this.room.robot.server)
+        .get('/hubot/factoid/missing');
+      res.text.should.eql('Not Found');
+    }));
   });
 });
 

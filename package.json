@@ -29,6 +29,7 @@
     "test": "grunt simplemocha"
   },
   "devDependencies": {
+    "co": "^4.6.0",
     "eslint": "^3.12.2",
     "eslint-config-standard": "^6.2.1",
     "eslint-plugin-promise": "^3.4.0",
@@ -46,7 +47,9 @@
     "hubot-variables": "halkeye/hubot-variables",
     "nyc": "^10.0.0",
     "should": "~11.1.1",
-    "sinon": "~1.17.6"
+    "sinon": "~1.17.6",
+    "supertest": "^2.0.1",
+    "supertest-as-promised": "^4.0.2"
   },
   "keywords": [
     "hubot",

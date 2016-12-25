@@ -332,15 +332,13 @@ module.exports = function Plugin (robot) {
   robot.respond(/alias (.*?) => (.*?)$/, robot.factoid.alias);
 
   robot.router.get(`/${robot.name}/factoid/:factoid`, function (req, res) {
-    let left;
     let factoidName = req.params.factoid;
-    if (!factoidName) { return res.status(404).send('Not Found'); }
     let factoid = robot.factoid.get(factoidName);
     if (!factoid) { return res.status(404).send('Not Found'); }
     res.setHeader('content-type', 'text/plain');
     let content = [];
     content.push(`Factoid: [${factoidName}]`);
-    content.push((left = `Protected: ${factoid.readonly}`) != null ? left : {'true': 'false'});
+    content.push(`Protected: ${factoid.readonly ? 'true' : 'false'}`);
     content.push('');
     content.push('Tidbits:');
     for (let tidbit of factoid.tidbits) {
@@ -379,7 +377,7 @@ module.exports = function Plugin (robot) {
       return;
     }
     if (!factoid.tidbits[tid]) {
-      msg.reply(`Can't find tidbit #${tid+1}`);
+      msg.reply(`Can't find tidbit #${tid + 1}`);
       return;
     }
     let tidbit = factoid.tidbits.splice(tid, 1);
