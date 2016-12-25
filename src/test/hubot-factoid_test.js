@@ -374,4 +374,3 @@ describe('#Commands', () => {
 // robot.respond /what was that\??$/, (msg) ->
 // robot.respond /(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
 // robot.respond /(.*?)(<'s>)\s+(.*)()/i, robot.factoid.set
-// robot.router.get '/#{@room.robot.name}/factoid/:factoid', (req, res) ->
