@@ -2,7 +2,7 @@
 process.env.PORT = 0; // pick a random port for this test
 const Helper = require('hubot-test-helper');
 // helper loads all scripts passed a directory
-let helper = new Helper('../scripts');
+const helper = new Helper('../scripts');
 
 let prefixed = () => `${this.room.robot.name}: `;
 let unprefixed = () => '';
@@ -91,40 +91,73 @@ describe('#Commands', () => {
       );
     })
   );
+  describe('#literal', function () {
+    afterEach(function () { this.room.destroy(); });
+    beforeEach(function (done) {
+      this.room = helper.createRoom();
+      this.room.robot.brain.data.factoids = {
+        single_action: {
+          readonly: false,
+          tidbits: [{ tidbit: 'takes a quarter from $who and places it in the swear jar.', verb: '<action>' }]
+        },
+        multiple: {
+          readonly: false,
+          tidbits: [
+            { tidbit: 'response 1.', verb: '<action>' },
+            { tidbit: 'response 2.', verb: '<reply>' }
+          ]
+        },
+        rofl: {
+          readonly: false,
+          tidbits: [{ tidbit: 'I am also amused', verb: '<reply>' }]
+        },
+        lolalias: { readonly: false, alias: 'rofl' }
+      };
+      this.room.robot.brain.once('finished_loading_factoids', done);
+      this.room.robot.brain.emit('loaded', this.room.robot.brain.data);
+    });
+    describe('single_action', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot literal single_action');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot literal single_action'],
+          ['hubot', '@halkeye single_action (1): <action> takes a quarter from $who and places it in the swear jar.']
+        ]);
+      });
+    });
+    describe('multiple', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot literal multiple');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot literal multiple'],
+          ['hubot', '@halkeye multiple (2): <action> response 1.|<reply> response 2.']
+        ]);
+      });
+    });
+  });
 
-  return describe('#What was that', () => {
-    afterEach(() => {
-      return this.room.destroy();
-    }
-    );
+  describe('#What was that', () => {
+    afterEach(() => this.room.destroy());
     beforeEach(done => {
       this.room = helper.createRoom();
       this.room.robot.brain.data.factoids = {
         dammit: {
           readonly: false,
-          tidbits: [{
-            tidbit: 'takes a quarter from $who and places it in the swear jar.',
-            verb: '<action>'
-          }
-          ]
+          tidbits: [{ tidbit: 'takes a quarter from $who and places it in the swear jar.', verb: '<action>' }]
         },
         rofl: {
           readonly: false,
-          tidbits: [{
-            tidbit: 'I am also amused',
-            verb: '<reply>'
-          }
-          ]
+          tidbits: [{ tidbit: 'I am also amused', verb: '<reply>' }]
         },
-        lolalias: {
-          readonly: false,
-          alias: 'rofl'
-        }
+        lolalias: { readonly: false, alias: 'rofl' }
       };
       this.room.robot.brain.once('finished_loading_factoids', done);
-      return this.room.robot.brain.emit('loaded', this.room.robot.brain.data);
-    }
-    );
+      this.room.robot.brain.emit('loaded', this.room.robot.brain.data);
+    });
 
     describe('#basic', () => {
       beforeEach(() => {
@@ -133,9 +166,8 @@ describe('#Commands', () => {
           return this.room.user.say('halkeye', `${this.room.robot.name}: what was that`);
         }
         );
-      }
-      );
-      return describe('', () => {
+      });
+      describe('', () => {
         it('responding to factoid', () => {
           return this.room.messages.slice(0, 2).should.eql([
             ['halkeye', 'dammit'],
@@ -159,7 +191,7 @@ describe('#Commands', () => {
           return this.room.user.say('halkeye', `${this.room.robot.name}: what was that`);
         });
       });
-      return describe('', () => {
+      describe('', () => {
         it('responded at all', () => {
           return this.room.messages.should.not.be.empty;
         });
@@ -170,14 +202,14 @@ describe('#Commands', () => {
       });
     });
 
-    return describe('#alias', () => {
+    describe('#alias', () => {
       beforeEach(() => {
         this.room.robot.factoid.last_factoid = null;
         return this.room.user.say('halkeye', 'lolalias').then(() => {
           return this.room.user.say('halkeye', `${this.room.robot.name}: what was that`);
         });
       });
-      return describe('', () => {
+      describe('', () => {
         it('responded at all', () => {
           return this.room.messages.should.not.be.empty;
         });
@@ -187,7 +219,7 @@ describe('#Commands', () => {
             ['hubot', 'I am also amused']
           ]);
         });
-        return it('responding to "what was that"', () => {
+        it('responding to "what was that"', () => {
           this.room.messages[3].should.not.be.empty;
           return this.room.messages[3][1].should.eql("@halkeye That was 'lolalias' => 'rofl' (#0): <reply> I am also amused");
         });

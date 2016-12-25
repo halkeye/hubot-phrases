@@ -348,8 +348,8 @@ module.exports = function Plugin (robot) {
   });
     // res.send require('util').inspect(req.params)
 
-  robot.respond(/literal(?:\[([*\d]+)\])?\s+(.*)$/, robot.factoid.handlerLiteral);
-  robot.hear(/^literal(?:\[([*\d]+)\])?\s+(.*)$/, robot.factoid.handlerLiteral);
+  robot.respond(/literal(?:\[([*\d]+)])?\s+(.*)$/, robot.factoid.handlerLiteral);
+  robot.hear(/^literal(?:\[([*\d]+)])?\s+(.*)$/, robot.factoid.handlerLiteral);
 
   robot.respond(/forget #(\d+)$/, msg => {
     return msg.reply('Sorry, syntax is now "forget <factoid>#<index from 0>" or "forget that"');
