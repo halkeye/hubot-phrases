@@ -44,6 +44,7 @@
     "hubot": "~2.19.0",
     "hubot-test-helper": "^1.5.0",
     "hubot-variables": "halkeye/hubot-variables",
+    "nyc": "^10.0.0",
     "should": "~11.1.1",
     "sinon": "~1.17.6"
   },
