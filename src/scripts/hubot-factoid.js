@@ -95,6 +95,9 @@ module.exports = function Plugin (robot) {
     }
     save () {
       robot.brain.data.factoids[this.name] = this.toObj();
+      if (!robot.brain.data.factoids[this.name].tidbits.length) {
+        delete robot.brain.data.factoids[this.name];
+      }
     }
   }
 
@@ -353,15 +356,13 @@ module.exports = function Plugin (robot) {
 
   robot.respond(/forget #(\d+)$/, msg => {
     return msg.reply('Sorry, syntax is now "forget <factoid>#<index from 0>" or "forget that"');
-  }
-  );
+  });
 
   robot.respond(/forget that$/, msg => {
     return msg.reply('FIXME - not implemented yet');
-  }
-  );
+  });
 
-  robot.respond(/forget (.*)#(\d+)$/, msg => {
+  robot.respond(/forget (.+)#(\d+)$/, msg => {
     let factoidName = msg.match[1].trim();
     let tid = parseInt(msg.match[2], 10) - 1;
     let factoid = robot.factoid.get(factoidName);
@@ -378,14 +379,13 @@ module.exports = function Plugin (robot) {
       return;
     }
     if (!factoid.tidbits[tid]) {
-      msg.reply(`Can't find tidbit #${tid}`);
+      msg.reply(`Can't find tidbit #${tid+1}`);
       return;
     }
     let tidbit = factoid.tidbits.splice(tid, 1);
     msg.reply(`Deleted tidbit: ${tidbit[0].verb}|${tidbit[0].tidbit}`);
     return factoid.save();
-  }
-  );
+  });
 
   robot.respond(/what was that\??$/, function (msg) {
     // FIXME this should be per room
@@ -432,7 +432,6 @@ module.exports = function Plugin (robot) {
     if (!factoid) { return; }
     robot.factoid.output(msg, factoid, history);
     if (history.length > 0) { robot.factoid.last_factoid = history; }
-  }
-  );
+  });
 };
 

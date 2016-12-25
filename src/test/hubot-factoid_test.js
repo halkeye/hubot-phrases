@@ -226,6 +226,118 @@ describe('#Commands', () => {
       });
     });
   });
+  describe('#forget', function () {
+    afterEach(function () { this.room.destroy(); });
+    beforeEach(function (done) {
+      this.room = helper.createRoom();
+      this.room.robot.brain.data.factoids = {
+        readonly: {
+          readonly: true,
+          tidbits: [{ tidbit: 'readonly.', verb: '<action>' }]
+        },
+        word: {
+          readonly: false,
+          tidbits: [{ tidbit: 'takes a quarter from $who and places it in the swear jar.', verb: '<action>' }]
+        },
+        multiple: {
+          readonly: false,
+          tidbits: [
+            { tidbit: 'response 1.', verb: '<action>' },
+            { tidbit: 'response 2.', verb: '<reply>' }
+          ]
+        },
+        rofl: {
+          readonly: false,
+          tidbits: [{ tidbit: 'I am also amused', verb: '<reply>' }]
+        },
+        lolalias: { readonly: false, alias: 'rofl' }
+      };
+      this.room.robot.brain.once('finished_loading_factoids', done);
+      this.room.robot.brain.emit('loaded', this.room.robot.brain.data);
+    });
+    describe('old delete syntax', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot forget #1');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot forget #1'],
+          ['hubot', '@halkeye Sorry, syntax is now "forget <factoid>#<index from 0>" or "forget that"']
+        ]);
+      });
+    });
+    describe('deleting the only tidbit', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot forget word#1');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot forget word#1'],
+          ['hubot', '@halkeye Deleted tidbit: <action>|takes a quarter from $who and places it in the swear jar.']
+        ]);
+        this.room.robot.brain.data.factoids.should.not.have.property('word');
+      });
+    });
+    describe('deleting 0 based tidbit', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot forget word#0');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot forget word#0'],
+          ['hubot', '@halkeye Sorry, you must provide a number greater than 0 (as this is 1 based)']
+        ]);
+      });
+    });
+    describe('deleting missing based tidbit', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot forget word#8');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot forget word#8'],
+          ['hubot', "@halkeye Can't find tidbit #8"]
+        ]);
+      });
+    });
+    describe('deleting one of multiple tidbits', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot forget multiple#2');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot forget multiple#2'],
+          ['hubot', '@halkeye Deleted tidbit: <reply>|response 2.']
+        ]);
+        this.room.robot.brain.data.factoids.should.have.property('multiple');
+        this.room.robot.brain.data.factoids.multiple.should.have.property('tidbits');
+      });
+    });
+    describe('delete missing factoid', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot forget doesnotexist#1');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot forget doesnotexist#1'],
+          ['hubot', '@halkeye No such factoid']
+        ]);
+      });
+    });
+    describe('deleting non editable tidbit', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot forget readonly#2');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot forget readonly#2'],
+          ['hubot', "@halkeye Sorry, you don't have permissions to edit 'readonly'."]
+        ]);
+        this.room.robot.brain.data.factoids.should.have.property('readonly');
+        this.room.robot.brain.data.factoids.readonly.should.have.property('tidbits');
+      });
+    });
+  });
 });
 
 // halkeye: That was 'give me a weapon' (#863): <action> gives $weapon to $who;  vars used: { 'weapon' => [ 'a Biggoron Sword' ]};.
@@ -235,10 +347,7 @@ describe('#Commands', () => {
 // robot.respond /(?:do something|something random)$/, (msg) =>
 // robot.respond /(un)?protect\s*(.*)$/, (msg) =>
 // robot.respond /alias (.*?) => (.*?)$/, robot.factoid.alias
-// robot.respond /literal(?:\[([*\d]+)\])?\s+(.*)$/, (msg) =>
-// robot.respond /forget #(\d+)$/, (msg) =>
 // robot.respond /forget that$/, (msg) =>
-// robot.respond /forget (.*)#(\d+)$/, (msg) =>
 // robot.respond /what was that\??$/, (msg) ->
 // robot.respond /(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
 // robot.respond /(.*?)(<'s>)\s+(.*)()/i, robot.factoid.set
