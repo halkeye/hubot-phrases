@@ -11,6 +11,14 @@ let unprefixed = () => '';
 
 function setupBrain (room, done) {
   room.robot.brain.data.factoids = {
+    dammit: {
+      readonly: false,
+      tidbits: [{ tidbit: 'takes a quarter from $who and places it in the swear jar.', verb: '<action>' }]
+    },
+    single_action: {
+      readonly: false,
+      tidbits: [{ tidbit: 'takes a quarter from $who and places it in the swear jar.', verb: '<action>' }]
+    },
     readonly: {
       readonly: true,
       tidbits: [{ tidbit: 'readonly.', verb: '<action>' }]
@@ -124,26 +132,7 @@ describe('#Commands', () => {
     afterEach(function () { this.room.destroy(); });
     beforeEach(function (done) {
       this.room = helper.createRoom();
-      this.room.robot.brain.data.factoids = {
-        single_action: {
-          readonly: false,
-          tidbits: [{ tidbit: 'takes a quarter from $who and places it in the swear jar.', verb: '<action>' }]
-        },
-        multiple: {
-          readonly: false,
-          tidbits: [
-            { tidbit: 'response 1.', verb: '<action>' },
-            { tidbit: 'response 2.', verb: '<reply>' }
-          ]
-        },
-        rofl: {
-          readonly: false,
-          tidbits: [{ tidbit: 'I am also amused', verb: '<reply>' }]
-        },
-        lolalias: { readonly: false, alias: 'rofl' }
-      };
-      this.room.robot.brain.once('finished_loading_factoids', done);
-      this.room.robot.brain.emit('loaded', this.room.robot.brain.data);
+      setupBrain(this.room, done);
     });
     describe('single_action', function () {
       beforeEach(function () {
@@ -173,19 +162,7 @@ describe('#Commands', () => {
     afterEach(() => this.room.destroy());
     beforeEach(done => {
       this.room = helper.createRoom();
-      this.room.robot.brain.data.factoids = {
-        dammit: {
-          readonly: false,
-          tidbits: [{ tidbit: 'takes a quarter from $who and places it in the swear jar.', verb: '<action>' }]
-        },
-        rofl: {
-          readonly: false,
-          tidbits: [{ tidbit: 'I am also amused', verb: '<reply>' }]
-        },
-        lolalias: { readonly: false, alias: 'rofl' }
-      };
-      this.room.robot.brain.once('finished_loading_factoids', done);
-      this.room.robot.brain.emit('loaded', this.room.robot.brain.data);
+      setupBrain(this.room, done);
     });
 
     describe('#basic', () => {
@@ -193,8 +170,7 @@ describe('#Commands', () => {
         this.room.robot.factoid.last_factoid = null;
         return this.room.user.say('halkeye', 'dammit').then(() => {
           return this.room.user.say('halkeye', `${this.room.robot.name}: what was that`);
-        }
-        );
+        });
       });
       describe('', () => {
         it('responding to factoid', () => {
@@ -202,8 +178,7 @@ describe('#Commands', () => {
             ['halkeye', 'dammit'],
             ['hubot', 'takes a quarter from $who and places it in the swear jar.']
           ]);
-        }
-        );
+        });
         return it('responding to "what was that"', () => {
           return this.room.messages.slice(-2).should.eql([
             ['halkeye', 'hubot: what was that'],
