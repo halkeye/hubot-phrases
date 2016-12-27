@@ -92,6 +92,16 @@ describe('#Commands', () => {
             ])
           );
         });
+        describe('#do something addressed', () => {
+          before(() => room.user.say('halkeye', 'hubot do something'));
+          it('#outputs text', () => room.messages.should.not.be.empty);
+          it('#outputs quarter', () =>
+            room.messages.slice(-2).should.eql([
+              [ 'halkeye', 'hubot do something' ],
+              [ 'hubot', 'takes a quarter from $who and places it in the swear jar.' ]
+            ])
+          );
+        });
       });
 
       describe('#Adding', () =>
