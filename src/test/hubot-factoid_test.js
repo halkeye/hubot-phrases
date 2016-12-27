@@ -1,5 +1,7 @@
 /* eslint-env mocha */
 process.env.PORT = 0; // pick a random port for this test
+process.env.HUBOT_URL = 'http://localhost/';
+
 const Helper = require('hubot-test-helper');
 // helper loads all scripts passed a directory
 const helper = new Helper('../scripts');
@@ -33,6 +35,10 @@ function setupBrain (room, done) {
         { tidbit: 'response 1.', verb: '<action>' },
         { tidbit: 'response 2.', verb: '<reply>' }
       ]
+    },
+    large: {
+      readonly: false,
+      tidbits: Array(11).map((elm, idx) => { return { tidbit: `response ${idx}.`, verb: '<action>' }; })
     },
     rofl: {
       readonly: false,
@@ -163,6 +169,17 @@ describe('#Commands', () => {
         this.room.messages.should.eql([
           ['halkeye', 'hubot literal multiple'],
           ['hubot', '@halkeye multiple (2): <action> response 1.|<reply> response 2.']
+        ]);
+      });
+    });
+    describe('large', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot literal large');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot literal large'],
+          ['hubot', '@halkeye http://localhost/hubot/factoid/large']
         ]);
       });
     });
