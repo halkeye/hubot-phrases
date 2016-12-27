@@ -8,8 +8,8 @@ const helper = new Helper('../scripts');
 const co = require('co');
 const request = require('supertest-as-promised');
 
-let prefixed = () => `${this.room.robot.name}: `;
-let unprefixed = () => '';
+let prefixed = function () { return `${this.room.robot.name}: `; };
+let unprefixed = function () { return ''; };
 
 function setupBrain (room, done) {
   room.robot.brain.data.factoids = {
@@ -50,10 +50,10 @@ function setupBrain (room, done) {
   room.robot.brain.emit('loaded', room.robot.brain.data);
 }
 
-describe('#Commands', () => {
+describe('#Commands', function () {
   [['Addressed', prefixed], ['Not Addressed', unprefixed]].forEach(type =>
-    describe(type[0], () => {
-      describe('#Randoms', () => {
+    describe(type[0], function () {
+      describe('#Randoms', function () {
         let room = null;
         before(done => {
           room = helper.createRoom();
@@ -71,15 +71,15 @@ describe('#Commands', () => {
           room.robot.brain.emit('loaded', room.robot.brain.data);
         });
 
-        after(() => {
+        after(function () {
           room.destroy();
           room = null;
         });
 
-        describe('#something random', () => {
-          before(() => room.user.say('halkeye', 'something random'));
+        describe('#something random', function () {
+          before(function () { return room.user.say('halkeye', 'something random'); });
 
-          it('#outputs text', () => room.messages.should.not.be.empty);
+          it('#outputs text', function () { room.messages.should.not.be.empty; });
           it('#outputs quarter', () =>
             room.messages.slice(-2).should.eql([
               [ 'halkeye', 'something random' ],
@@ -88,9 +88,9 @@ describe('#Commands', () => {
           );
         });
 
-        describe('#do something', () => {
-          before(() => room.user.say('halkeye', 'do something'));
-          it('#outputs text', () => room.messages.should.not.be.empty);
+        describe('#do something', function () {
+          before(function () { return room.user.say('halkeye', 'do something'); });
+          it('#outputs text', function () { return room.messages.should.not.be.empty; });
           it('#outputs quarter', () =>
             room.messages.slice(-2).should.eql([
               [ 'halkeye', 'do something' ],
@@ -98,9 +98,9 @@ describe('#Commands', () => {
             ])
           );
         });
-        describe('#do something addressed', () => {
-          before(() => room.user.say('halkeye', 'hubot do something'));
-          it('#outputs text', () => room.messages.should.not.be.empty);
+        describe('#do something addressed', function () {
+          before(function () { return room.user.say('halkeye', 'hubot do something'); });
+          it('#outputs text', function () { room.messages.should.not.be.empty; });
           it('#outputs quarter', () =>
             room.messages.slice(-2).should.eql([
               [ 'halkeye', 'hubot do something' ],
@@ -112,9 +112,9 @@ describe('#Commands', () => {
 
       describe('#Adding', () =>
         ['is', 'are', 'is also'].forEach(isare => {
-          return describe(`#${isare} something`, () => {
-            after(() => this.room.destroy());
-            before(() => {
+          return describe(`#${isare} something`, function () {
+            after(function () { this.room.destroy(); });
+            before(function () {
               this.room = helper.createRoom();
               this.room.robot.brain.data.factoids = {};
               let promise = new Promise(resolve => {
@@ -128,13 +128,13 @@ describe('#Commands', () => {
               });
             });
 
-            it('#outputs okay', () => {
+            it('#outputs okay', function () {
               return this.room.messages.should.eql([
                 ['halkeye', `${type[1].call(this)}${isare}.something ${isare} moocow`],
                 ['hubot', '@halkeye Okay.']
               ]);
             });
-            return it('#brain factoids updated', () => {
+            return it('#brain factoids updated', function () {
               this.room.robot.factoid.facts.should.not.be.empty;
               this.room.robot.factoid.facts[`${isare}.something`].name.should.be.eql(`${isare}.something`);
               this.room.robot.factoid.facts[`${isare}.something`].tidbits.should.be.eql([ { tidbit: 'moocow', verb: isare.replace(' also', '') } ]);
@@ -185,28 +185,28 @@ describe('#Commands', () => {
     });
   });
 
-  describe('#What was that', () => {
-    afterEach(() => this.room.destroy());
-    beforeEach(done => {
+  describe('#What was that', function () {
+    afterEach(function () { this.room.destroy(); });
+    beforeEach(function (done) {
       this.room = helper.createRoom();
       setupBrain(this.room, done);
     });
 
-    describe('#basic', () => {
-      beforeEach(() => {
+    describe('#basic', function () {
+      beforeEach(function () {
         this.room.robot.factoid.last_factoid = null;
         return this.room.user.say('halkeye', 'dammit').then(() => {
           return this.room.user.say('halkeye', `${this.room.robot.name}: what was that`);
         });
       });
-      describe('', () => {
-        it('responding to factoid', () => {
+      describe('', function () {
+        it('responding to factoid', function () {
           return this.room.messages.slice(0, 2).should.eql([
             ['halkeye', 'dammit'],
             ['hubot', 'takes a quarter from $who and places it in the swear jar.']
           ]);
         });
-        return it('responding to "what was that"', () => {
+        return it('responding to "what was that"', function () {
           return this.room.messages.slice(-2).should.eql([
             ['halkeye', 'hubot: what was that'],
             ['hubot', '@halkeye That was \'dammit\' (#0): <action> takes a quarter from $who and places it in the swear jar.']
@@ -215,42 +215,42 @@ describe('#Commands', () => {
       });
     });
 
-    describe('#something random', () => {
-      beforeEach(() => {
+    describe('#something random', function () {
+      beforeEach(function () {
         this.room.robot.factoid.last_factoid = null;
         return this.room.user.say('halkeye', 'something random').then(() => {
           return this.room.user.say('halkeye', `${this.room.robot.name}: what was that`);
         });
       });
-      describe('', () => {
-        it('responded at all', () => {
+      describe('', function () {
+        it('responded at all', function () {
           return this.room.messages.should.not.be.empty;
         });
-        return it('responding to "what was that"', () => {
+        return it('responding to "what was that"', function () {
           this.room.messages[3].should.not.be.empty;
           return this.room.messages[3][1].should.match(new RegExp('^@halkeye That was'));
         });
       });
     });
 
-    describe('#alias', () => {
-      beforeEach(() => {
+    describe('#alias', function () {
+      beforeEach(function () {
         this.room.robot.factoid.last_factoid = null;
         return this.room.user.say('halkeye', 'lolalias').then(() => {
           return this.room.user.say('halkeye', `${this.room.robot.name}: what was that`);
         });
       });
-      describe('', () => {
-        it('responded at all', () => {
+      describe('', function () {
+        it('responded at all', function () {
           return this.room.messages.should.not.be.empty;
         });
-        it('responding to factoid', () => {
+        it('responding to factoid', function () {
           return this.room.messages.slice(0, 2).should.eql([
             ['halkeye', 'lolalias'],
             ['hubot', 'I am also amused']
           ]);
         });
-        it('responding to "what was that"', () => {
+        it('responding to "what was that"', function () {
           this.room.messages[3].should.not.be.empty;
           return this.room.messages[3][1].should.eql("@halkeye That was 'lolalias' => 'rofl' (#0): <reply> I am also amused");
         });
