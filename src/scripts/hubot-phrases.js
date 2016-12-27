@@ -11,18 +11,15 @@
 //   /hubot/phrase/:phrase
 //
 // Commands:
-//   hubot literal <phrase> - Outputs information about a phrase. Right now only the url
-//   hubot do something - see something random
-//   hubot something random - see somethin random
-//   do something - see something random
-//   something random - Outputs a random phrase
-//   hubot forget <phrase>#<num> - Deletes the <num>th response of <phrase>
-//   hubot forget that - Deletes the last used response
-//   hubot what was that - Outputs what the last phrase was
-//   <phrase> - Outputs a random reply that matches <phrase>
+//    hubot literal <phrase> - Outputs information about a phrase. if greater than 10 tidbits, then output a url instead
+//    hubot do something|something random - output a random phrase
+//    hubot forget <phrase>#<num> - Deletes the <num>th response of <phrase>
+//    hubot forget that - Deletes the last used response
+//    hubot what was that - Outputs what the last phrase was
+//    <phrase> - Outputs a random tidbit/reply that matches <phrase>
 //
 // Notes:
-//   Copyright (c) 2013 Gavin Mogan
+//   Copyright (c) 2013,2016 Gavin Mogan
 //   Licensed under the MIT license.
 //
 // Author:
