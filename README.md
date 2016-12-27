@@ -17,7 +17,7 @@ phrases (responses) support for hubot
 * hubot forget <phrase>#<num> - Deletes the <num>th response of <phrase>
 * hubot forget that - Deletes the last used response
 * hubot what was that - Outputs what the last phrase was
-* <phrase> - Outputs a random tidbit/reply that matches <phrase>
+* [phrase] - Outputs a random tidbit/reply that matches <phrase>
 
 ## Configuration
 
