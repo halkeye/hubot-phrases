@@ -1,7 +1,7 @@
 {
   "name": "hubot-factoid",
   "description": "factoid (responses) support for hubot",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "homepage": "https://github.com/halkeye/hubot-factoid",
   "author": {
     "name": "Gavin Mogan",
