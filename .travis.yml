@@ -6,4 +6,4 @@ after_success:
 - npm run test:cov-codacy
 env:
   global:
-    secure: kcSBPZTsNf5JYki9SJEq8SbcKDLHh6In0YYyTN+NeE/zZo2KxuT/qQ8h/oyY8sKZc/bjOpC6fdgANRTtaaRbVB0ccOmlUC5x0G0GaAUE13fdBI6DHqyCYOUoQUabjaOKq0BjuqRgfZnqvD44Mlbk3muEuSl3M3jtxQW9uO7k1fY=
+  - secure: cIH9KJHAfYZIvRZux0SXGXyHo3ez/8JrRMLnxK1pvhYUxiYLsHcO4N+svElTlw6anOYpxMb7zVg7/QJDe9rsjEhARmg1f3nDC4NAw+Mo+xsqUQ6KAvP40Al8sKi+Edd4xCjQKvSqJNcKudaOajk9mdhI/tbMaz1EnRD0JGbT8po=
