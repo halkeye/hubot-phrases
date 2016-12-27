@@ -38,7 +38,7 @@ function setupBrain (room, done) {
     },
     large: {
       readonly: false,
-      tidbits: Array(11).map((elm, idx) => { return { tidbit: `response ${idx}.`, verb: '<action>' }; })
+      tidbits: Array(11).fill(null).map((elm, idx) => { return { tidbit: `response ${idx}.`, verb: '<action>' }; })
     },
     rofl: {
       readonly: false,
@@ -356,6 +356,11 @@ describe('#Commands', function () {
       const res = yield request(this.room.robot.server)
         .get('/hubot/factoid/single');
       res.text.should.eql('Factoid: [single]\nProtected: false\n\nTidbits:\n<action>|takes a quarter from $who and places it in the swear jar.');
+    }));
+    it('lookup existing large', co.wrap(function *() {
+      const res = yield request(this.room.robot.server)
+        .get('/hubot/factoid/large');
+      res.text.should.eql('Factoid: [large]\nProtected: false\n\nTidbits:\n<action>|response 0.\n<action>|response 1.\n<action>|response 2.\n<action>|response 3.\n<action>|response 4.\n<action>|response 5.\n<action>|response 6.\n<action>|response 7.\n<action>|response 8.\n<action>|response 9.\n<action>|response 10.');
     }));
     it('lookup missing factoid', co.wrap(function *() {
       const res = yield request(this.room.robot.server)
