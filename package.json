@@ -1,24 +1,24 @@
 {
-  "name": "hubot-factoid",
-  "description": "factoid (responses) support for hubot",
-  "version": "1.0.0",
-  "homepage": "https://github.com/halkeye/hubot-factoid",
+  "name": "hubot-phrases",
+  "description": "phrases (responses) support for hubot",
+  "version": "0.0.0",
+  "homepage": "https://github.com/halkeye/hubot-phrases",
   "author": {
     "name": "Gavin Mogan",
-    "email": "gavin@kodekoan.com",
-    "url": "http://www.kodekoan.com"
+    "email": "npm@gavinmogan.com",
+    "url": "http://www.gavinmogan.com"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/halkeye/hubot-factoid.git"
+    "url": "git://github.com/halkeye/hubot-phrases.git"
   },
   "bugs": {
-    "url": "https://github.com/halkeye/hubot-factoid/issues"
+    "url": "https://github.com/halkeye/hubot-phrases/issues"
   },
   "licenses": [
     {
       "type": "MIT",
-      "url": "https://github.com/halkeye/hubot-factoid/blob/master/LICENSE-MIT"
+      "url": "https://github.com/halkeye/hubot-phrases/blob/master/LICENSE-MIT"
     }
   ],
   "main": "index",

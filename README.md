@@ -1,13 +1,13 @@
-# hubot-factoid
+# hubot-phrases
 
-[![Build Status](https://travis-ci.org/halkeye/hubot-factoid.png?branch=master)](https://travis-ci.org/halkeye/hubot-factoid)
-[![Dependency Status](https://gemnasium.com/halkeye/hubot-factoid.png)](https://gemnasium.com/halkeye/hubot-factoid)
+[![Build Status](https://travis-ci.org/halkeye/hubot-phrases.png?branch=master)](https://travis-ci.org/halkeye/hubot-phrases)
+[![Dependency Status](https://gemnasium.com/halkeye/hubot-phrases.png)](https://gemnasium.com/halkeye/hubot-phrases)
 
-factoid (responses) support for hubot
+phrases (responses) support for hubot
 
 ## Getting Started
-1. Install the module: `npm install --save hubot-factoid`
-2. Add it `hubot-factoid` to your external-scripts.json file in your hubot directory
+1. Install the module: `npm install --save hubot-phrases`
+2. Add it `hubot-phrases` to your external-scripts.json file in your hubot directory
 
 ## Configuration
 
