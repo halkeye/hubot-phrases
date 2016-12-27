@@ -26,6 +26,7 @@
     "node": ">= 4"
   },
   "scripts": {
+    "test:cov-codacy": "nyc --reporter=lcov --reporter=text mocha test --recursive && cat coverage/lcov.info | codacy-coverage",
     "test": "mocha",
     "lint": "eslint ."
   },

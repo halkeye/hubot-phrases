@@ -1,3 +1,9 @@
 language: node_js
 node_js:
-  - "node"
+- node
+after_success:
+- npm install codacy-coverage
+- npm run test:cov-codacy
+env:
+  global:
+    secure: kcSBPZTsNf5JYki9SJEq8SbcKDLHh6In0YYyTN+NeE/zZo2KxuT/qQ8h/oyY8sKZc/bjOpC6fdgANRTtaaRbVB0ccOmlUC5x0G0GaAUE13fdBI6DHqyCYOUoQUabjaOKq0BjuqRgfZnqvD44Mlbk3muEuSl3M3jtxQW9uO7k1fY=
