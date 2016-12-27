@@ -12,7 +12,7 @@ let prefixed = function () { return `${this.room.robot.name}: `; };
 let unprefixed = function () { return ''; };
 
 function setupBrain (room, done) {
-  room.robot.brain.data.factoids = {
+  room.robot.brain.data.phrases = {
     dammit: {
       readonly: false,
       tidbits: [{ tidbit: 'takes a quarter from $who and places it in the swear jar.', verb: '<action>' }]
@@ -46,7 +46,7 @@ function setupBrain (room, done) {
     },
     lolalias: { readonly: false, alias: 'rofl' }
   };
-  room.robot.brain.once('finished_loading_factoids', done);
+  room.robot.brain.once('finished_loading_phrases', done);
   room.robot.brain.emit('loaded', room.robot.brain.data);
 }
 
@@ -57,7 +57,7 @@ describe('#Commands', function () {
         let room = null;
         before(done => {
           room = helper.createRoom();
-          room.robot.brain.data.factoids = {
+          room.robot.brain.data.phrases = {
             dammit: {
               readonly: false,
               tidbits: [{
@@ -67,7 +67,7 @@ describe('#Commands', function () {
               }]
             }
           };
-          room.robot.brain.once('finished_loading_factoids', done);
+          room.robot.brain.once('finished_loading_phrases', done);
           room.robot.brain.emit('loaded', room.robot.brain.data);
         });
 
@@ -116,9 +116,9 @@ describe('#Commands', function () {
             after(function () { this.room.destroy(); });
             before(function () {
               this.room = helper.createRoom();
-              this.room.robot.brain.data.factoids = {};
+              this.room.robot.brain.data.phrases = {};
               let promise = new Promise(resolve => {
-                this.room.robot.brain.once('finished_loading_factoids', resolve);
+                this.room.robot.brain.once('finished_loading_phrases', resolve);
                 return this.room.robot.brain.emit('loaded', this.room.robot.brain.data);
               });
               return promise.then(() => {
@@ -134,10 +134,10 @@ describe('#Commands', function () {
                 ['hubot', '@halkeye Okay.']
               ]);
             });
-            return it('#brain factoids updated', function () {
-              this.room.robot.factoid.facts.should.not.be.empty;
-              this.room.robot.factoid.facts[`${isare}.something`].name.should.be.eql(`${isare}.something`);
-              this.room.robot.factoid.facts[`${isare}.something`].tidbits.should.be.eql([ { tidbit: 'moocow', verb: isare.replace(' also', '') } ]);
+            return it('#brain phrases updated', function () {
+              this.room.robot.phrase.facts.should.not.be.empty;
+              this.room.robot.phrase.facts[`${isare}.something`].name.should.be.eql(`${isare}.something`);
+              this.room.robot.phrase.facts[`${isare}.something`].tidbits.should.be.eql([ { tidbit: 'moocow', verb: isare.replace(' also', '') } ]);
             });
           });
         })
@@ -179,7 +179,7 @@ describe('#Commands', function () {
       it('respond something', function () {
         this.room.messages.should.eql([
           ['halkeye', 'hubot literal large'],
-          ['hubot', '@halkeye http://localhost/hubot/factoid/large']
+          ['hubot', '@halkeye http://localhost/hubot/phrase/large']
         ]);
       });
     });
@@ -194,13 +194,13 @@ describe('#Commands', function () {
 
     describe('#basic', function () {
       beforeEach(function () {
-        this.room.robot.factoid.last_factoid = null;
+        this.room.robot.phrase.last_phrase = null;
         return this.room.user.say('halkeye', 'dammit').then(() => {
           return this.room.user.say('halkeye', `${this.room.robot.name}: what was that`);
         });
       });
       describe('', function () {
-        it('responding to factoid', function () {
+        it('responding to phrase', function () {
           return this.room.messages.slice(0, 2).should.eql([
             ['halkeye', 'dammit'],
             ['hubot', 'takes a quarter from $who and places it in the swear jar.']
@@ -217,7 +217,7 @@ describe('#Commands', function () {
 
     describe('#something random', function () {
       beforeEach(function () {
-        this.room.robot.factoid.last_factoid = null;
+        this.room.robot.phrase.last_phrase = null;
         return this.room.user.say('halkeye', 'something random').then(() => {
           return this.room.user.say('halkeye', `${this.room.robot.name}: what was that`);
         });
@@ -235,7 +235,7 @@ describe('#Commands', function () {
 
     describe('#alias', function () {
       beforeEach(function () {
-        this.room.robot.factoid.last_factoid = null;
+        this.room.robot.phrase.last_phrase = null;
         return this.room.user.say('halkeye', 'lolalias').then(() => {
           return this.room.user.say('halkeye', `${this.room.robot.name}: what was that`);
         });
@@ -244,7 +244,7 @@ describe('#Commands', function () {
         it('responded at all', function () {
           return this.room.messages.should.not.be.empty;
         });
-        it('responding to factoid', function () {
+        it('responding to phrase', function () {
           return this.room.messages.slice(0, 2).should.eql([
             ['halkeye', 'lolalias'],
             ['hubot', 'I am also amused']
@@ -270,7 +270,7 @@ describe('#Commands', function () {
       it('respond something', function () {
         this.room.messages.should.eql([
           ['halkeye', 'hubot forget #1'],
-          ['hubot', '@halkeye Sorry, syntax is now "forget <factoid>#<index from 0>" or "forget that"']
+          ['hubot', '@halkeye Sorry, syntax is now "forget <phrase>#<index from 0>" or "forget that"']
         ]);
       });
     });
@@ -283,7 +283,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot forget single#1'],
           ['hubot', '@halkeye Deleted tidbit: <action>|takes a quarter from $who and places it in the swear jar.']
         ]);
-        this.room.robot.brain.data.factoids.should.not.have.property('single');
+        this.room.robot.brain.data.phrases.should.not.have.property('single');
       });
     });
     describe('deleting 0 based tidbit', function () {
@@ -317,18 +317,18 @@ describe('#Commands', function () {
           ['halkeye', 'hubot forget multiple#2'],
           ['hubot', '@halkeye Deleted tidbit: <reply>|response 2.']
         ]);
-        this.room.robot.brain.data.factoids.should.have.property('multiple');
-        this.room.robot.brain.data.factoids.multiple.should.have.property('tidbits');
+        this.room.robot.brain.data.phrases.should.have.property('multiple');
+        this.room.robot.brain.data.phrases.multiple.should.have.property('tidbits');
       });
     });
-    describe('delete missing factoid', function () {
+    describe('delete missing phrase', function () {
       beforeEach(function () {
         return this.room.user.say('halkeye', 'hubot forget doesnotexist#1');
       });
       it('respond something', function () {
         this.room.messages.should.eql([
           ['halkeye', 'hubot forget doesnotexist#1'],
-          ['hubot', '@halkeye No such factoid']
+          ['hubot', '@halkeye No such phrase']
         ]);
       });
     });
@@ -341,8 +341,8 @@ describe('#Commands', function () {
           ['halkeye', 'hubot forget readonly#2'],
           ['hubot', "@halkeye Sorry, you don't have permissions to edit 'readonly'."]
         ]);
-        this.room.robot.brain.data.factoids.should.have.property('readonly');
-        this.room.robot.brain.data.factoids.readonly.should.have.property('tidbits');
+        this.room.robot.brain.data.phrases.should.have.property('readonly');
+        this.room.robot.brain.data.phrases.readonly.should.have.property('tidbits');
       });
     });
   });
@@ -352,19 +352,19 @@ describe('#Commands', function () {
       this.room = helper.createRoom();
       setupBrain(this.room, done);
     });
-    it('lookup existing factoid', co.wrap(function *() {
+    it('lookup existing phrase', co.wrap(function *() {
       const res = yield request(this.room.robot.server)
-        .get('/hubot/factoid/single');
+        .get('/hubot/phrase/single');
       res.text.should.eql('Factoid: [single]\nProtected: false\n\nTidbits:\n<action>|takes a quarter from $who and places it in the swear jar.');
     }));
     it('lookup existing large', co.wrap(function *() {
       const res = yield request(this.room.robot.server)
-        .get('/hubot/factoid/large');
+        .get('/hubot/phrase/large');
       res.text.should.eql('Factoid: [large]\nProtected: false\n\nTidbits:\n<action>|response 0.\n<action>|response 1.\n<action>|response 2.\n<action>|response 3.\n<action>|response 4.\n<action>|response 5.\n<action>|response 6.\n<action>|response 7.\n<action>|response 8.\n<action>|response 9.\n<action>|response 10.');
     }));
-    it('lookup missing factoid', co.wrap(function *() {
+    it('lookup missing phrase', co.wrap(function *() {
       const res = yield request(this.room.robot.server)
-        .get('/hubot/factoid/missing');
+        .get('/hubot/phrase/missing');
       res.text.should.eql('Not Found');
     }));
   });
@@ -383,7 +383,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot alias dammit2 => dammit'],
           ['hubot', '@halkeye Okay.']
         ]);
-        this.room.robot.brain.data.factoids.should.have.property('dammit2');
+        this.room.robot.brain.data.phrases.should.have.property('dammit2');
       });
     });
     describe('trying to alias to existing', function () {
@@ -393,7 +393,7 @@ describe('#Commands', function () {
       it('respond something', function () {
         this.room.messages.should.eql([
           ['halkeye', 'hubot alias single_action => dammit'],
-          ['hubot', "@halkeye Sorry, there is already a factoid for 'single_action'."]
+          ['hubot', "@halkeye Sorry, there is already a phrase for 'single_action'."]
         ]);
       });
     });
@@ -404,21 +404,21 @@ describe('#Commands', function () {
       it('respond something', function () {
         this.room.messages.should.eql([
           ['halkeye', 'hubot alias aliased_one => readonly'],
-          ['hubot', '@halkeye Sorry, that factoid is protected']
+          ['hubot', '@halkeye Sorry, that phrase is protected']
         ]);
-        this.room.robot.brain.data.factoids.should.not.have.property('aliased_one');
+        this.room.robot.brain.data.phrases.should.not.have.property('aliased_one');
       });
     });
-    describe('missing factoid', function () {
+    describe('missing phrase', function () {
       beforeEach(function () {
-        return this.room.user.say('halkeye', 'hubot alias aliased_one => notafactoid');
+        return this.room.user.say('halkeye', 'hubot alias aliased_one => notaphrase');
       });
       it('respond something', function () {
         this.room.messages.should.eql([
-          ['halkeye', 'hubot alias aliased_one => notafactoid'],
-          ['hubot', "@halkeye Sorry, there is no factoid for the target 'notafactoid'."]
+          ['halkeye', 'hubot alias aliased_one => notaphrase'],
+          ['hubot', "@halkeye Sorry, there is no phrase for the target 'notaphrase'."]
         ]);
-        this.room.robot.brain.data.factoids.should.not.have.property('aliased_one');
+        this.room.robot.brain.data.phrases.should.not.have.property('aliased_one');
       });
     });
   });
@@ -428,16 +428,16 @@ describe('#Commands', function () {
       this.room = helper.createRoom();
       setupBrain(this.room, done);
     });
-    describe('missing factoid', function () {
+    describe('missing phrase', function () {
       beforeEach(function () {
-        return this.room.user.say('halkeye', 'hubot protect notafactoid');
+        return this.room.user.say('halkeye', 'hubot protect notaphrase');
       });
       it('respond something', function () {
         this.room.messages.should.eql([
-          ['halkeye', 'hubot protect notafactoid'],
-          ['hubot', '@halkeye No such factoid.']
+          ['halkeye', 'hubot protect notaphrase'],
+          ['hubot', '@halkeye No such phrase.']
         ]);
-        this.room.robot.brain.data.factoids.readonly.should.have.property('readonly', true);
+        this.room.robot.brain.data.phrases.readonly.should.have.property('readonly', true);
       });
     });
     describe('already protected', function () {
@@ -449,7 +449,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot protect readonly'],
           ['hubot', '@halkeye I already had it that way.']
         ]);
-        this.room.robot.brain.data.factoids.readonly.should.have.property('readonly', true);
+        this.room.robot.brain.data.phrases.readonly.should.have.property('readonly', true);
       });
     });
     describe('protecting item', function () {
@@ -461,7 +461,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot protect dammit'],
           ['hubot', '@halkeye Okay.']
         ]);
-        this.room.robot.brain.data.factoids.dammit.should.have.property('readonly', true);
+        this.room.robot.brain.data.phrases.dammit.should.have.property('readonly', true);
       });
     });
   });
@@ -471,16 +471,16 @@ describe('#Commands', function () {
       this.room = helper.createRoom();
       setupBrain(this.room, done);
     });
-    describe('missing factoid', function () {
+    describe('missing phrase', function () {
       beforeEach(function () {
-        return this.room.user.say('halkeye', 'hubot unprotect notafactoid');
+        return this.room.user.say('halkeye', 'hubot unprotect notaphrase');
       });
       it('respond something', function () {
         this.room.messages.should.eql([
-          ['halkeye', 'hubot unprotect notafactoid'],
-          ['hubot', '@halkeye No such factoid.']
+          ['halkeye', 'hubot unprotect notaphrase'],
+          ['hubot', '@halkeye No such phrase.']
         ]);
-        this.room.robot.brain.data.factoids.readonly.should.have.property('readonly', true);
+        this.room.robot.brain.data.phrases.readonly.should.have.property('readonly', true);
       });
     });
     describe('already unprotected', function () {
@@ -492,7 +492,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot unprotect dammit'],
           ['hubot', '@halkeye I already had it that way.']
         ]);
-        this.room.robot.brain.data.factoids.dammit.should.have.property('readonly', false);
+        this.room.robot.brain.data.phrases.dammit.should.have.property('readonly', false);
       });
     });
     describe('unprotecting item', function () {
@@ -504,18 +504,18 @@ describe('#Commands', function () {
           ['halkeye', 'hubot unprotect readonly'],
           ['hubot', '@halkeye Okay.']
         ]);
-        this.room.robot.brain.data.factoids.readonly.should.have.property('readonly', false);
+        this.room.robot.brain.data.phrases.readonly.should.have.property('readonly', false);
       });
     });
   });
 });
 
 // halkeye: That was 'give me a weapon' (#863): <action> gives $weapon to $who;  vars used: { 'weapon' => [ 'a Biggoron Sword' ]};.
-// robot.hear /^(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
-// robot.hear /^(.*?)(<'s>)\s+(.*)()/i, robot.factoid.setAdressed
+// robot.hear /^(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.phrase.setAddressed
+// robot.hear /^(.*?)(<'s>)\s+(.*)()/i, robot.phrase.setAdressed
 // robot.hear /^(.*)\??$/, (msg) =>
 // robot.respond /(?:do something|something random)$/, (msg) =>
 // robot.respond /forget that$/, (msg) =>
 // robot.respond /what was that\??$/, (msg) ->
-// robot.respond /(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
-// robot.respond /(.*?)(<'s>)\s+(.*)()/i, robot.factoid.set
+// robot.respond /(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.phrase.setAddressed
+// robot.respond /(.*?)(<'s>)\s+(.*)()/i, robot.phrase.set

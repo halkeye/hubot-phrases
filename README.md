@@ -10,6 +10,18 @@ phrases (responses) support for hubot
 1. Install the module: `npm install --save hubot-phrases`
 2. Add it `hubot-phrases` to your external-scripts.json file in your hubot directory
 
+## Usage
+
+//   hubot literal <phrase> - Outputs information about a phrase. Right now only the url
+//   hubot do something - see something random
+//   hubot something random - see somethin random
+//   do something - see something random
+//   something random - Outputs a random phrase
+//   hubot forget <phrase>#<num> - Deletes the <num>th response of <phrase>
+//   hubot forget that - Deletes the last used response
+//   hubot what was that - Outputs what the last phrase was
+//   <phrase> - Outputs a random reply that matches <phrase>
+
 ## Configuration
 
 None
