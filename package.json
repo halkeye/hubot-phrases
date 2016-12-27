@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "co": "^4.6.0",
+    "coffee-script": "^1.12.2",
     "eslint": "^3.12.2",
     "eslint-config-standard": "^6.2.1",
     "eslint-plugin-promise": "^3.4.0",
