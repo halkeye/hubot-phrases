@@ -94,8 +94,8 @@ module.exports = function Plugin (robot) {
       };
     }
     save () {
-      robot.brain.data.factoids[this.name] = this.toObj();
-      if (!robot.brain.data.factoids[this.name].tidbits.length) {
+      const factoid = robot.brain.data.factoids[this.name] = this.toObj();
+      if (!factoid.alias && !factoid.tidbits.length) {
         delete robot.brain.data.factoids[this.name];
       }
     }

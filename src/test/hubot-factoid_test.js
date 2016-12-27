@@ -336,6 +336,60 @@ describe('#Commands', () => {
       res.text.should.eql('Not Found');
     }));
   });
+  describe('#alias', function () {
+    afterEach(function () { this.room.destroy(); });
+    beforeEach(function (done) {
+      this.room = helper.createRoom();
+      setupBrain(this.room, done);
+    });
+    describe('good clean alias', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot alias dammit2 => dammit');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot alias dammit2 => dammit'],
+          ['hubot', '@halkeye Okay.']
+        ]);
+        this.room.robot.brain.data.factoids.should.have.property('dammit2');
+      });
+    });
+    describe('trying to alias to existing', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot alias single_action => dammit');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot alias single_action => dammit'],
+          ['hubot', "@halkeye Sorry, there is already a factoid for 'single_action'."]
+        ]);
+      });
+    });
+    describe('trying to alias to readonly', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot alias aliased_one => readonly');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot alias aliased_one => readonly'],
+          ['hubot', '@halkeye Sorry, that factoid is protected']
+        ]);
+        this.room.robot.brain.data.factoids.should.not.have.property('aliased_one');
+      });
+    });
+    describe('missing factoid', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot alias aliased_one => notafactoid');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot alias aliased_one => notafactoid'],
+          ['hubot', "@halkeye Sorry, there is no factoid for the target 'notafactoid'."]
+        ]);
+        this.room.robot.brain.data.factoids.should.not.have.property('aliased_one');
+      });
+    });
+  });
 });
 
 // halkeye: That was 'give me a weapon' (#863): <action> gives $weapon to $who;  vars used: { 'weapon' => [ 'a Biggoron Sword' ]};.
