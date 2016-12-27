@@ -10,11 +10,17 @@ factoid (responses) support for hubot
 2. Add it `hubot-factoid` to your external-scripts.json file in your hubot directory
 
 ## Configuration
-_(Coming soon)_
+
+None
 
 ## Release History
-_(Nothing yet)_
+
+2016-12-27 - 1.0.0
+
+* Remove coffeescript
+* Test coverage
+* minor bug fixes
 
 ## License
-Copyright (c) 2013 Gavin Mogan
+Copyright (c) 2013,2016 Gavin Mogan
 Licensed under the MIT license.
