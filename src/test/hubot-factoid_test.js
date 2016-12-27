@@ -483,8 +483,6 @@ describe('#Commands', () => {
 // robot.hear /^(.*?)(<'s>)\s+(.*)()/i, robot.factoid.setAdressed
 // robot.hear /^(.*)\??$/, (msg) =>
 // robot.respond /(?:do something|something random)$/, (msg) =>
-// robot.respond /(un)?protect\s*(.*)$/, (msg) =>
-// robot.respond /alias (.*?) => (.*?)$/, robot.factoid.alias
 // robot.respond /forget that$/, (msg) =>
 // robot.respond /what was that\??$/, (msg) ->
 // robot.respond /(.*?)\s+(<\w+(?:'t)?>)\s*(.*)()/i, robot.factoid.setAddressed
