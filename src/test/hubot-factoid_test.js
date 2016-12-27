@@ -390,6 +390,92 @@ describe('#Commands', () => {
       });
     });
   });
+  describe('#protect', function () {
+    afterEach(function () { this.room.destroy(); });
+    beforeEach(function (done) {
+      this.room = helper.createRoom();
+      setupBrain(this.room, done);
+    });
+    describe('missing factoid', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot protect notafactoid');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot protect notafactoid'],
+          ['hubot', '@halkeye No such factoid.']
+        ]);
+        this.room.robot.brain.data.factoids.readonly.should.have.property('readonly', true);
+      });
+    });
+    describe('already protected', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot protect readonly');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot protect readonly'],
+          ['hubot', '@halkeye I already had it that way.']
+        ]);
+        this.room.robot.brain.data.factoids.readonly.should.have.property('readonly', true);
+      });
+    });
+    describe('protecting item', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot protect dammit');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot protect dammit'],
+          ['hubot', '@halkeye Okay.']
+        ]);
+        this.room.robot.brain.data.factoids.dammit.should.have.property('readonly', true);
+      });
+    });
+  });
+  describe('#unprotect', function () {
+    afterEach(function () { this.room.destroy(); });
+    beforeEach(function (done) {
+      this.room = helper.createRoom();
+      setupBrain(this.room, done);
+    });
+    describe('missing factoid', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot unprotect notafactoid');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot unprotect notafactoid'],
+          ['hubot', '@halkeye No such factoid.']
+        ]);
+        this.room.robot.brain.data.factoids.readonly.should.have.property('readonly', true);
+      });
+    });
+    describe('already unprotected', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot unprotect dammit');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot unprotect dammit'],
+          ['hubot', '@halkeye I already had it that way.']
+        ]);
+        this.room.robot.brain.data.factoids.dammit.should.have.property('readonly', false);
+      });
+    });
+    describe('unprotecting item', function () {
+      beforeEach(function () {
+        return this.room.user.say('halkeye', 'hubot unprotect readonly');
+      });
+      it('respond something', function () {
+        this.room.messages.should.eql([
+          ['halkeye', 'hubot unprotect readonly'],
+          ['hubot', '@halkeye Okay.']
+        ]);
+        this.room.robot.brain.data.factoids.readonly.should.have.property('readonly', false);
+      });
+    });
+  });
 });
 
 // halkeye: That was 'give me a weapon' (#863): <action> gives $weapon to $who;  vars used: { 'weapon' => [ 'a Biggoron Sword' ]};.

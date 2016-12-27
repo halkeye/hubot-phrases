@@ -315,19 +315,18 @@ module.exports = function Plugin (robot) {
     let factoidName = msg.match[2].trim();
     let factoid = robot.factoid.get(factoidName);
     if (!factoid) {
-      msg.reply('No such factoid');
+      msg.reply('No such factoid.');
       return;
     }
     msg.finish();
     if (factoid.readonly === protect) {
-      msg.reply('I already had it that way');
+      msg.reply('I already had it that way.');
       return;
     }
     factoid.readonly = protect;
     factoid.save();
     return msg.reply('Okay.');
-  }
-  );
+  });
 
   robot.respond(/alias (.*?) => (.*?)$/, robot.factoid.alias);
 
