@@ -25,6 +25,11 @@ None
 
 ## Release History
 
+2016-12-27 - 1.0.1
+
+* Full cleanup/rename of factoid to phrases
+* Update documentation
+
 2016-12-27 - 1.0.0
 
 * Remove coffeescript
