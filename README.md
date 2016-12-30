@@ -25,6 +25,10 @@ None
 
 ## Release History
 
+2016-12-30 - 1.0.2
+
+* Minor bug fix to handle when no existing data
+
 2016-12-27 - 1.0.1
 
 * Full cleanup/rename of factoid to phrases
