@@ -91,6 +91,9 @@ module.exports = function Plugin (robot) {
       };
     }
     save () {
+      if (!robot.brain.data.phrases) {
+        robot.brain.data.phrases = {};
+      }
       const phrase = robot.brain.data.phrases[this.name] = this.toObj();
       if (!phrase.alias && !phrase.tidbits.length) {
         delete robot.brain.data.phrases[this.name];
@@ -114,6 +117,8 @@ module.exports = function Plugin (robot) {
           for (let key of keys) {
             this.facts[key] = new Factoid(key, data.phrases[key]);
           }
+        } else {
+          robot.brain.data.phrases = {};
         }
         return robot.brain.emit('finished_loading_phrases');
       }
