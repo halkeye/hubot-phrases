@@ -8,3 +8,9 @@ grunt.js
 out/
 .nyc_output/
 coverage/
+.envrc
+.npmignore
+.eslintignore
+test/
+src/test
+.eslintrc.json
