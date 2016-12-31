@@ -91,13 +91,12 @@ module.exports = function Plugin (robot) {
       };
     }
     save () {
-      if (!robot.brain.data.phrases) {
-        robot.brain.data.phrases = {};
-      }
-      const phrase = robot.brain.data.phrases[this.name] = this.toObj();
+      const phrases = robot.brain.get('phrases') || {};
+      const phrase = phrases[this.name] = this.toObj();
       if (!phrase.alias && !phrase.tidbits.length) {
-        delete robot.brain.data.phrases[this.name];
+        delete phrases[this.name];
       }
+      robot.brain.set('phrases', phrases);
     }
   }
 
@@ -109,20 +108,18 @@ module.exports = function Plugin (robot) {
       this.stats = {};
       this.facts = {};
       this.last_phrase = {};
-      robot.brain.on('loaded', data => {
+      robot.brain.on('loaded', (data = {_private: {}}) => {
         this.facts = {};
-        if (robot.brain.data.phrases) {
+        const phrases = data._private.phrases;
+        if (phrases) {
           robot.logger.info('Loading saved phrases');
-          let keys = Object.keys(data.phrases);
+          let keys = Object.keys(phrases);
           for (let key of keys) {
-            this.facts[key] = new Factoid(key, data.phrases[key]);
+            this.facts[key] = new Factoid(key, phrases[key]);
           }
-        } else {
-          robot.brain.data.phrases = {};
         }
-        return robot.brain.emit('finished_loading_phrases');
-      }
-      );
+        robot.brain.emit('finished_loading_phrases');
+      });
     }
     hasFacts () {
       return Object.keys(this.facts).length;

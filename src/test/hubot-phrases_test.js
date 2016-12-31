@@ -12,7 +12,7 @@ let prefixed = function () { return `${this.room.robot.name}: `; };
 let unprefixed = function () { return ''; };
 
 function setupBrain (room, done) {
-  room.robot.brain.data.phrases = {
+  const phrases = {
     dammit: {
       readonly: false,
       tidbits: [{ tidbit: 'takes a quarter from $who and places it in the swear jar.', verb: '<action>' }]
@@ -47,7 +47,7 @@ function setupBrain (room, done) {
     lolalias: { readonly: false, alias: 'rofl' }
   };
   room.robot.brain.once('finished_loading_phrases', done);
-  room.robot.brain.emit('loaded', room.robot.brain.data);
+  room.robot.brain.set('phrases', phrases);
 }
 
 describe('#Commands', function () {
@@ -57,7 +57,7 @@ describe('#Commands', function () {
         let room = null;
         before(done => {
           room = helper.createRoom();
-          room.robot.brain.data.phrases = {
+          const phrases = {
             dammit: {
               readonly: false,
               tidbits: [{
@@ -68,7 +68,7 @@ describe('#Commands', function () {
             }
           };
           room.robot.brain.once('finished_loading_phrases', done);
-          room.robot.brain.emit('loaded', room.robot.brain.data);
+          room.robot.brain.set('phrases', phrases);
         });
 
         after(function () {
@@ -112,29 +112,25 @@ describe('#Commands', function () {
 
       describe('#Adding', () =>
         ['is', 'are', 'is also'].forEach(isare => {
-          return describe(`#${isare} something`, function () {
+          describe(`#${isare} something`, function () {
             after(function () { this.room.destroy(); });
             before(function () {
-              this.room = helper.createRoom();
-              this.room.robot.brain.data.phrases = {};
-              let promise = new Promise(resolve => {
+              const promise = new Promise(resolve => {
+                this.room = helper.createRoom();
                 this.room.robot.brain.once('finished_loading_phrases', resolve);
-                return this.room.robot.brain.emit('loaded', this.room.robot.brain.data);
-              });
-              return promise.then(() => {
-                return this.room.user.say(
-                  'halkeye', `${type[1].call(this)}${isare}.something ${isare} moocow`
-                );
-              });
+                this.room.robot.brain.set('phrases', {});
+              })
+                .then(() => this.room.user.say('halkeye', `${type[1].call(this)}${isare}.something ${isare} moocow`));
+              return promise;
             });
 
             it('#outputs okay', function () {
-              return this.room.messages.should.eql([
+              this.room.messages.should.eql([
                 ['halkeye', `${type[1].call(this)}${isare}.something ${isare} moocow`],
                 ['hubot', '@halkeye Okay.']
               ]);
             });
-            return it('#brain phrases updated', function () {
+            it('#brain phrases updated', function () {
               this.room.robot.phrase.facts.should.not.be.empty;
               this.room.robot.phrase.facts[`${isare}.something`].name.should.be.eql(`${isare}.something`);
               this.room.robot.phrase.facts[`${isare}.something`].tidbits.should.be.eql([ { tidbit: 'moocow', verb: isare.replace(' also', '') } ]);
@@ -283,7 +279,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot forget single#1'],
           ['hubot', '@halkeye Deleted tidbit: <action>|takes a quarter from $who and places it in the swear jar.']
         ]);
-        this.room.robot.brain.data.phrases.should.not.have.property('single');
+        this.room.robot.brain.get('phrases').should.not.have.property('single');
       });
     });
     describe('deleting 0 based tidbit', function () {
@@ -317,8 +313,8 @@ describe('#Commands', function () {
           ['halkeye', 'hubot forget multiple#2'],
           ['hubot', '@halkeye Deleted tidbit: <reply>|response 2.']
         ]);
-        this.room.robot.brain.data.phrases.should.have.property('multiple');
-        this.room.robot.brain.data.phrases.multiple.should.have.property('tidbits');
+        this.room.robot.brain.get('phrases').should.have.property('multiple');
+        this.room.robot.brain.get('phrases').multiple.should.have.property('tidbits');
       });
     });
     describe('delete missing phrase', function () {
@@ -341,8 +337,8 @@ describe('#Commands', function () {
           ['halkeye', 'hubot forget readonly#2'],
           ['hubot', "@halkeye Sorry, you don't have permissions to edit 'readonly'."]
         ]);
-        this.room.robot.brain.data.phrases.should.have.property('readonly');
-        this.room.robot.brain.data.phrases.readonly.should.have.property('tidbits');
+        this.room.robot.brain.get('phrases').should.have.property('readonly');
+        this.room.robot.brain.get('phrases').readonly.should.have.property('tidbits');
       });
     });
   });
@@ -383,7 +379,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot alias dammit2 => dammit'],
           ['hubot', '@halkeye Okay.']
         ]);
-        this.room.robot.brain.data.phrases.should.have.property('dammit2');
+        this.room.robot.brain.get('phrases').should.have.property('dammit2');
       });
     });
     describe('trying to alias to existing', function () {
@@ -406,7 +402,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot alias aliased_one => readonly'],
           ['hubot', '@halkeye Sorry, that phrase is protected']
         ]);
-        this.room.robot.brain.data.phrases.should.not.have.property('aliased_one');
+        this.room.robot.brain.get('phrases').should.not.have.property('aliased_one');
       });
     });
     describe('missing phrase', function () {
@@ -418,7 +414,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot alias aliased_one => notaphrase'],
           ['hubot', "@halkeye Sorry, there is no phrase for the target 'notaphrase'."]
         ]);
-        this.room.robot.brain.data.phrases.should.not.have.property('aliased_one');
+        this.room.robot.brain.get('phrases').should.not.have.property('aliased_one');
       });
     });
   });
@@ -437,7 +433,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot protect notaphrase'],
           ['hubot', '@halkeye No such phrase.']
         ]);
-        this.room.robot.brain.data.phrases.readonly.should.have.property('readonly', true);
+        this.room.robot.brain.get('phrases').readonly.should.have.property('readonly', true);
       });
     });
     describe('already protected', function () {
@@ -449,7 +445,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot protect readonly'],
           ['hubot', '@halkeye I already had it that way.']
         ]);
-        this.room.robot.brain.data.phrases.readonly.should.have.property('readonly', true);
+        this.room.robot.brain.get('phrases').readonly.should.have.property('readonly', true);
       });
     });
     describe('protecting item', function () {
@@ -461,7 +457,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot protect dammit'],
           ['hubot', '@halkeye Okay.']
         ]);
-        this.room.robot.brain.data.phrases.dammit.should.have.property('readonly', true);
+        this.room.robot.brain.get('phrases').dammit.should.have.property('readonly', true);
       });
     });
   });
@@ -480,7 +476,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot unprotect notaphrase'],
           ['hubot', '@halkeye No such phrase.']
         ]);
-        this.room.robot.brain.data.phrases.readonly.should.have.property('readonly', true);
+        this.room.robot.brain.get('phrases').readonly.should.have.property('readonly', true);
       });
     });
     describe('already unprotected', function () {
@@ -492,7 +488,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot unprotect dammit'],
           ['hubot', '@halkeye I already had it that way.']
         ]);
-        this.room.robot.brain.data.phrases.dammit.should.have.property('readonly', false);
+        this.room.robot.brain.get('phrases').dammit.should.have.property('readonly', false);
       });
     });
     describe('unprotecting item', function () {
@@ -504,7 +500,7 @@ describe('#Commands', function () {
           ['halkeye', 'hubot unprotect readonly'],
           ['hubot', '@halkeye Okay.']
         ]);
-        this.room.robot.brain.data.phrases.readonly.should.have.property('readonly', false);
+        this.room.robot.brain.get('phrases').readonly.should.have.property('readonly', false);
       });
     });
   });
