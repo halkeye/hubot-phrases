@@ -6,7 +6,7 @@ const Helper = require('hubot-test-helper');
 // helper loads all scripts passed a directory
 const helper = new Helper('../scripts');
 const co = require('co');
-const request = require('supertest-as-promised');
+const request = require('supertest');
 
 let prefixed = function () { return `${this.room.robot.name}: `; };
 let unprefixed = function () { return ''; };
