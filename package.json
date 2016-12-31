@@ -23,23 +23,24 @@
   ],
   "main": "index",
   "engines": {
-    "node": ">= 4"
+    "node": ">= 6"
   },
   "scripts": {
     "test:cov-codacy": "nyc --reporter=lcov --reporter=text mocha test --recursive && cat coverage/lcov.info | codacy-coverage",
     "test": "mocha",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "preversion": "conventional-changelog -p angular -i CHANGELOG.md -s"
   },
   "devDependencies": {
     "co": "^4.6.0",
     "coffee-script": "^1.12.2",
+    "conventional-changelog-cli": "^1.2.0",
     "eslint": "^3.12.2",
     "eslint-config-standard": "^6.2.1",
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-standard": "^2.0.1",
     "hubot": "~2.19.0",
     "hubot-test-helper": "^1.5.0",
-    "hubot-variables": "halkeye/hubot-variables",
     "mocha": "^3.2.0",
     "nyc": "^10.0.0",
     "should": "~11.1.1",
