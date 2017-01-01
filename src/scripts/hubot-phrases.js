@@ -105,6 +105,9 @@ module.exports = function Plugin (robot) {
       this.alias = this.alias.bind(this);
       this.setAddressed = this.setAddressed.bind(this);
       this.set = this.set.bind(this);
+      this.handlerGetAddressed = this.handlerGetAddressed.bind(this);
+      this.handlerGet = this.handlerGet.bind(this);
+
       this.stats = {};
       this.facts = {};
       this.last_phrase = {};
@@ -290,6 +293,22 @@ module.exports = function Plugin (robot) {
       phrase.tidbits.forEach(tidbit => response.push(`${tidbit.verb} ${tidbit.tidbit}`));
       return msg.reply(`${phrase.name} (${phrase.tidbits.length}): ${response.join('|')}`);
     }
+    handlerGetAddressed (msg) {
+      msg.message.addressed = true;
+      return this.handlerGet(msg);
+    }
+    handlerGet (msg) {
+      let phraseName = msg.match[1].trim();
+      // FIXME this should be per room
+      let history = [];
+      let phrase = robot.phrase.get(phraseName, history);
+      if (!phrase) { return; }
+      robot.phrase.output(msg, phrase, history);
+      msg.finish();
+      if (history.length > 0) {
+        robot.phrase.last_phrase = history;
+      }
+    }
   }
 
   robot.phrase = new FactoidHandler();
@@ -420,14 +439,7 @@ module.exports = function Plugin (robot) {
   robot.hear(/^(.*?)\s+(is(?: also)?|are)\s+(.*)/i, robot.phrase.set);
 
   // # FIXME, make these loaded once brain is loaded so it doesn't need to do wildcard match
-  return robot.hear(/^(.*)\??$/, msg => {
-    let phraseName = msg.match[1].trim();
-    // FIXME this should be per room
-    let history = [];
-    let phrase = robot.phrase.get(phraseName, history);
-    if (!phrase) { return; }
-    robot.phrase.output(msg, phrase, history);
-    if (history.length > 0) { robot.phrase.last_phrase = history; }
-  });
+  robot.respond(/(.{3,})$/, robot.phrase.handlerGetAddressed);
+  robot.hear(/(.{3,})$/, robot.phrase.handlerGet);
 };
 

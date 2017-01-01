@@ -140,6 +140,31 @@ describe('#Commands', function () {
       );
     })
   );
+  describe('#Using', function () {
+    afterEach(function () { this.room.destroy(); });
+    beforeEach(function (done) {
+      this.room = helper.createRoom();
+      setupBrain(this.room, done);
+    });
+    it('unaddressed', function () {
+      return Promise.resolve()
+        .then(() => this.room.user.say('halkeye', 'dammit'))
+        .then(() => {
+          this.room.messages.splice(-1).should.eql([
+            ['hubot', 'takes a quarter from $who and places it in the swear jar.']
+          ]);
+        });
+    });
+    it('addressed', function () {
+      return Promise.resolve()
+        .then(() => this.room.user.say('halkeye', 'hubot dammit'))
+        .then(() => {
+          this.room.messages.splice(-1).should.eql([
+            ['hubot', 'takes a quarter from $who and places it in the swear jar.']
+          ]);
+        });
+    });
+  });
   describe('#literal', function () {
     afterEach(function () { this.room.destroy(); });
     beforeEach(function (done) {
