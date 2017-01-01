@@ -38,9 +38,9 @@ module.exports = function Plugin (robot) {
       this.name = name;
       this.tidbits = [];
       this.alias = false;
-      this.readonly = true;
-      if ((data.readonly != null) && data.readonly === false) {
-        this.readonly = false;
+      this.readonly = false;
+      if (data.readonly === true) {
+        this.readonly = data.readonly;
       }
       if (data.alias) {
         this.alias = data.alias;
