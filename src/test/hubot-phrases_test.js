@@ -146,6 +146,15 @@ describe('#Commands', function () {
       this.room = helper.createRoom();
       setupBrain(this.room, done);
     });
+    it('punctation', function () {
+      return Promise.resolve()
+        .then(() => this.room.user.say('halkeye', 'dammit!?!'))
+        .then(() => {
+          this.room.messages.splice(-1).should.eql([
+            ['hubot', 'takes a quarter from $who and places it in the swear jar.']
+          ]);
+        });
+    });
     it('unaddressed', function () {
       return Promise.resolve()
         .then(() => this.room.user.say('halkeye', 'dammit'))

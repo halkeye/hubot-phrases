@@ -298,7 +298,7 @@ module.exports = function Plugin (robot) {
       return this.handlerGet(msg);
     }
     handlerGet (msg) {
-      let phraseName = msg.match[1].trim();
+      let phraseName = msg.match[1].trim().replace(/[.,/#!$%^&*;:{}=-_`~()]/g, '');
       // FIXME this should be per room
       let history = [];
       let phrase = robot.phrase.get(phraseName, history);
