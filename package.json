@@ -1,7 +1,7 @@
 {
   "name": "hubot-phrases",
   "description": "phrases (responses) support for hubot",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "homepage": "https://github.com/halkeye/hubot-phrases",
   "author": {
     "name": "Gavin Mogan",
