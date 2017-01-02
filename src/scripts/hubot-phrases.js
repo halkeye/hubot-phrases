@@ -110,27 +110,19 @@ module.exports = function Plugin (robot) {
       this.handlerGet = this.handlerGet.bind(this);
 
       this.stats = {};
-      this.facts = {};
       this.last_phrase = {};
       robot.brain.on('loaded', (data = {_private: {}}) => {
-        this.facts = {};
-        const phrases = data._private.phrases;
-        if (phrases) {
-          robot.logger.info('Loading saved phrases');
-          let keys = Object.keys(phrases);
-          for (let key of keys) {
-            this.facts[key] = new Factoid(key, phrases[key]);
-          }
-        }
         robot.brain.emit('finished_loading_phrases');
       });
     }
     hasFacts () {
-      return Object.keys(this.facts).length;
+      return Object.keys(robot.brain.get('phrases')).length;
     }
     get (str, history) {
       if (!this.hasFacts()) { return; }
-      let phrase = this.facts[str];
+      let phrases = robot.brain.get('phrases');
+      if (!phrases || !phrases[str]) { return; }
+      let phrase = new Factoid(str, phrases[str]);
       if (!phrase) { return; }
       robot.logger.debug(util.inspect(phrase));
       if (history) { history.push(phrase); }
@@ -139,7 +131,7 @@ module.exports = function Plugin (robot) {
     }
     random (history) {
       if (!this.hasFacts()) { return; }
-      let keys = Object.keys(this.facts);
+      let keys = Object.keys(robot.brain.get('phrases'));
       let phrase = keys[Math.floor(Math.random() * keys.length)];
       return this.get(phrase, history);
     }
@@ -186,10 +178,10 @@ module.exports = function Plugin (robot) {
       }
       msg.finish();
       robot.logger.info(`${msg.message.user.name} aliased '${srcName}' to '${targetName}'`);
-      var phrase = this.facts[srcName] = new Factoid(srcName);
+      var phrase = new Factoid(srcName);
       phrase.alias = targetName;
       phrase.save();
-      return msg.reply('Okay.');
+      msg.reply('Okay.');
     }
     setAddressed (msg) {
       msg.message.addressed = true;
@@ -251,7 +243,7 @@ module.exports = function Plugin (robot) {
 
       let phrase = this.get(fact);
       if (!phrase) {
-        phrase = this.facts[fact] = new Factoid(fact);
+        phrase = new Factoid(fact);
       } else if (!phrase.canEdit(msg.message.user)) {
         robot.logger.debug(`${phrase} that phrase is protected`);
         msg.reply('Sorry, that phrase is protected');

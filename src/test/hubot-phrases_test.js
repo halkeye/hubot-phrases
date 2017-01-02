@@ -131,9 +131,10 @@ describe('#Commands', function () {
               ]);
             });
             it('#brain phrases updated', function () {
-              this.room.robot.phrase.facts.should.not.be.empty;
-              this.room.robot.phrase.facts[`${isare}.something`].name.should.be.eql(`${isare}.something`);
-              this.room.robot.phrase.facts[`${isare}.something`].tidbits.should.be.eql([ { tidbit: 'moocow', verb: isare.replace(' also', '') } ]);
+              let phrase = this.room.robot.phrase.get(`${isare}.something`);
+              phrase.should.not.be.empty;
+              phrase.name.should.be.eql(`${isare}.something`);
+              phrase.tidbits.should.be.eql([ { tidbit: 'moocow', verb: isare.replace(' also', '') } ]);
             });
           });
         })
