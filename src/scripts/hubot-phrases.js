@@ -221,20 +221,16 @@ module.exports = function Plugin (robot) {
 
       this.stats.learn++;
       let matches = tidbit.match(/^<(action|reply)>\s*(.*)/);
-      var also;
       if (matches) {
         verb = `<${matches[1]}>`;
         tidbit = matches[2];
       } else if (verb === 'is also') {
-        also = 1;
         verb = 'is';
       } else if (forced) {
         if (verb !== '<action>' && verb !== '<reply>') {
           verb = verb.replace(/^<|>$/, '');
         }
-        if (/\sis\salso$/.test(fact)) {
-          also = 1;
-        } else {
+        if (!/\sis\salso$/.test(fact)) {
           fact.replace(/\sis$/, '');
         }
       }
@@ -270,14 +266,12 @@ module.exports = function Plugin (robot) {
       }
 
       phrase.addTidbit(tidbit, verb);
-      phrase.tidbits.push;
       phrase.save();
       robot.logger.debug(`${msg.message.user.name} taught in ${msg.message.user.room} ${phrase.tidbits.length} '${fact}', '${verb}' '${tidbit}'`);
       return msg.reply('Okay.');
     }
     handlerLiteral (msg) {
       // page - http://wiki.xkcd.com/irc/bucket#Listing_phrases
-      let page = msg.match[1];
       let phraseName = msg.match[2].trim();
       let phrase = robot.phrase.get(phraseName);
       if (!phrase) {
