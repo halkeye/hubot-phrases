@@ -134,7 +134,7 @@ describe('#Commands', function () {
               let phrase = this.room.robot.phrase.get(`${isare}.something`);
               phrase.should.not.be.empty;
               phrase.name.should.be.eql(`${isare}.something`);
-              phrase.tidbits.should.be.eql([ { tidbit: 'moocow', verb: isare.replace(' also', '') } ]);
+              phrase.tidbits.should.be.eql([ { creator: 'halkeye', room: 'room1', tidbit: 'moocow', verb: isare.replace(' also', '') } ]);
             });
           });
         })

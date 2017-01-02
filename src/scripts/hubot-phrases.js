@@ -71,13 +71,6 @@ module.exports = function Plugin (robot) {
     tidbit () {
       return this.tidbits[Math.floor(Math.random() * this.tidbits.length)];
     }
-    addTidbit (tidbit, verb) {
-      // FIXME - add validation
-      return this.tidbits.push({
-        tidbit,
-        verb
-      });
-    }
 
     toObj () {
       if (this.alias) {
@@ -179,6 +172,8 @@ module.exports = function Plugin (robot) {
       msg.finish();
       robot.logger.info(`${msg.message.user.name} aliased '${srcName}' to '${targetName}'`);
       var phrase = new Factoid(srcName);
+      phrase.creator = msg.message.user.name;
+      phrase.room = msg.message.user.room;
       phrase.alias = targetName;
       phrase.save();
       msg.reply('Okay.');
@@ -244,6 +239,8 @@ module.exports = function Plugin (robot) {
       let phrase = this.get(fact);
       if (!phrase) {
         phrase = new Factoid(fact);
+        phrase.creator = msg.message.user.name;
+        phrase.room = msg.message.user.room;
       } else if (!phrase.canEdit(msg.message.user)) {
         robot.logger.debug(`${phrase} that phrase is protected`);
         msg.reply('Sorry, that phrase is protected');
@@ -257,7 +254,12 @@ module.exports = function Plugin (robot) {
         }
       }
 
-      phrase.addTidbit(tidbit, verb);
+      phrase.tidbits.push({
+        tidbit: tidbit,
+        verb: verb,
+        creator: msg.message.user.name,
+        room: msg.message.user.room
+      });
       phrase.save();
       robot.logger.debug(`${msg.message.user.name} taught in ${msg.message.user.room} ${phrase.tidbits.length} '${fact}', '${verb}' '${tidbit}'`);
       return msg.reply('Okay.');
