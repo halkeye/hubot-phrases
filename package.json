@@ -29,7 +29,7 @@
     "test:cov-codacy": "nyc --reporter=lcov --reporter=text mocha test --recursive && cat coverage/lcov.info | codacy-coverage",
     "test": "mocha",
     "lint": "eslint .",
-    "preversion": "conventional-changelog -p angular -i CHANGELOG.md -s"
+    "preversion": "conventional-changelog -p angular -i CHANGELOG.md -s -r 10"
   },
   "devDependencies": {
     "co": "^4.6.0",
