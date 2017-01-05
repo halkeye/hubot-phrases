@@ -50,6 +50,21 @@ function setupBrain (room, done) {
   room.robot.brain.set('phrases', phrases);
 }
 
+
+describe('#Empty Brain', function() {
+  beforeEach(function () { this.room = helper.createRoom(); });
+  afterEach(function () { this.room.destroy(); });
+  it('setting', function() {
+    return Promise.resolve()
+      .then(() => this.room.user.say('halkeye', 'rofl <reply> I am also amused'))
+      .then(() => {
+        this.room.robot.brain.get('phrases').should.have.property('rofl');
+        this.room.messages.splice(-1).should.eql([
+          ['hubot', '@halkeye Okay.']
+        ]);
+      });
+  });
+});
 describe('#Commands', function () {
   [['Addressed', prefixed], ['Not Addressed', unprefixed]].forEach(type =>
     describe(type[0], function () {

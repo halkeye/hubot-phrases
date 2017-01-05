@@ -109,7 +109,7 @@ module.exports = function Plugin (robot) {
       });
     }
     hasFacts () {
-      return Object.keys(robot.brain.get('phrases')).length;
+      return Object.keys(robot.brain.get('phrases') || {}).length;
     }
     get (str, history) {
       if (!this.hasFacts()) { return; }
