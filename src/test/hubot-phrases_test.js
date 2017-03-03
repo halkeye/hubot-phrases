@@ -50,11 +50,10 @@ function setupBrain (room, done) {
   room.robot.brain.set('phrases', phrases);
 }
 
-
-describe('#Empty Brain', function() {
+describe('#Empty Brain', function () {
   beforeEach(function () { this.room = helper.createRoom(); });
   afterEach(function () { this.room.destroy(); });
-  it('setting', function() {
+  it('setting', function () {
     return Promise.resolve()
       .then(() => this.room.user.say('halkeye', 'rofl <reply> I am also amused'))
       .then(() => {
@@ -94,7 +93,7 @@ describe('#Commands', function () {
         describe('#something random', function () {
           before(function () { return room.user.say('halkeye', 'something random'); });
 
-          it('#outputs text', function () { room.messages.should.not.be.empty; });
+          it('#outputs text', function () { room.messages.should.not.be.empty(); });
           it('#outputs quarter', () =>
             room.messages.slice(-2).should.eql([
               [ 'halkeye', 'something random' ],
@@ -105,7 +104,7 @@ describe('#Commands', function () {
 
         describe('#do something', function () {
           before(function () { return room.user.say('halkeye', 'do something'); });
-          it('#outputs text', function () { return room.messages.should.not.be.empty; });
+          it('#outputs text', function () { return room.messages.should.not.be.empty(); });
           it('#outputs quarter', () =>
             room.messages.slice(-2).should.eql([
               [ 'halkeye', 'do something' ],
@@ -115,7 +114,7 @@ describe('#Commands', function () {
         });
         describe('#do something addressed', function () {
           before(function () { return room.user.say('halkeye', 'hubot do something'); });
-          it('#outputs text', function () { room.messages.should.not.be.empty; });
+          it('#outputs text', function () { room.messages.should.not.be.empty(); });
           it('#outputs quarter', () =>
             room.messages.slice(-2).should.eql([
               [ 'halkeye', 'hubot do something' ],
@@ -147,7 +146,7 @@ describe('#Commands', function () {
             });
             it('#brain phrases updated', function () {
               let phrase = this.room.robot.phrase.get(`${isare}.something`);
-              phrase.should.not.be.empty;
+              phrase.should.not.be.empty();
               phrase.name.should.be.eql(`${isare}.something`);
               phrase.tidbits.should.be.eql([ { creator: 'halkeye', room: 'room1', tidbit: 'moocow', verb: isare.replace(' also', '') } ]);
             });
@@ -270,10 +269,10 @@ describe('#Commands', function () {
       });
       describe('', function () {
         it('responded at all', function () {
-          return this.room.messages.should.not.be.empty;
+          return this.room.messages.should.not.be.empty();
         });
         return it('responding to "what was that"', function () {
-          this.room.messages[3].should.not.be.empty;
+          this.room.messages[3].should.not.be.empty();
           return this.room.messages[3][1].should.match(new RegExp('^@halkeye That was'));
         });
       });
@@ -288,7 +287,7 @@ describe('#Commands', function () {
       });
       describe('', function () {
         it('responded at all', function () {
-          return this.room.messages.should.not.be.empty;
+          return this.room.messages.should.not.be.empty();
         });
         it('responding to phrase', function () {
           return this.room.messages.slice(0, 2).should.eql([
@@ -297,7 +296,7 @@ describe('#Commands', function () {
           ]);
         });
         it('responding to "what was that"', function () {
-          this.room.messages[3].should.not.be.empty;
+          this.room.messages[3].should.not.be.empty();
           return this.room.messages[3][1].should.eql("@halkeye That was 'lolalias' => 'rofl' (#0): <reply> I am also amused");
         });
       });
@@ -398,17 +397,17 @@ describe('#Commands', function () {
       this.room = helper.createRoom();
       setupBrain(this.room, done);
     });
-    it('lookup existing phrase', co.wrap(function *() {
+    it('lookup existing phrase', co.wrap(function * () {
       const res = yield request(this.room.robot.server)
         .get('/hubot/phrase/single');
       res.text.should.eql('Factoid: [single]\nProtected: false\n\nTidbits:\n<action>|takes a quarter from $who and places it in the swear jar.');
     }));
-    it('lookup existing large', co.wrap(function *() {
+    it('lookup existing large', co.wrap(function * () {
       const res = yield request(this.room.robot.server)
         .get('/hubot/phrase/large');
       res.text.should.eql('Factoid: [large]\nProtected: false\n\nTidbits:\n<action>|response 0.\n<action>|response 1.\n<action>|response 2.\n<action>|response 3.\n<action>|response 4.\n<action>|response 5.\n<action>|response 6.\n<action>|response 7.\n<action>|response 8.\n<action>|response 9.\n<action>|response 10.');
     }));
-    it('lookup missing phrase', co.wrap(function *() {
+    it('lookup missing phrase', co.wrap(function * () {
       const res = yield request(this.room.robot.server)
         .get('/hubot/phrase/missing');
       res.text.should.eql('Not Found');

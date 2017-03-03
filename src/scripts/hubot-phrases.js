@@ -165,7 +165,7 @@ module.exports = function Plugin (robot) {
         return;
       }
       if (!target.canAlias(msg.message.user)) {
-        robot.logger.debug(`${phrase} that phrase is protected`);
+        robot.logger.debug(`${src} is a protected phrase`);
         msg.reply('Sorry, that phrase is protected');
         return;
       }
@@ -431,4 +431,3 @@ module.exports = function Plugin (robot) {
   robot.respond(/(.{3,})$/, robot.phrase.handlerGetAddressed);
   robot.hear(/(.{3,})$/, robot.phrase.handlerGet);
 };
-
