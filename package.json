@@ -30,7 +30,7 @@
     "test:report": "nyc --reporter=lcov --reporter=text mocha",
     "test": "mocha",
     "lint": "eslint .",
-    "postversion": "conventional-github-releaser -p angular",
+    "postversion": "git push --tags && conventional-github-releaser -p angular",
     "preversion": "conventional-changelog -p angular -i CHANGELOG.md -s -r 10"
   },
   "devDependencies": {
