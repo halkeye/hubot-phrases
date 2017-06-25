@@ -353,7 +353,7 @@ module.exports = function Plugin (robot) {
     res.send(content.join('\n'));
     return res.end;
   });
-    // res.send require('util').inspect(req.params)
+  // res.send require('util').inspect(req.params)
 
   robot.respond(/literal(?:\[([*\d]+)])?\s+(.*)$/, robot.phrase.handlerLiteral);
   robot.hear(/^literal(?:\[([*\d]+)])?\s+(.*)$/, robot.phrase.handlerLiteral);

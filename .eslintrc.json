@@ -1,6 +1,9 @@
 {
-    "extends": "standard",
-    "installedESLint": true,
+    "extends": [
+      "standard",
+      "plugin:import/errors",
+      "plugin:import/warnings"
+    ],
     "parserOptions": {
         "ecmaVersion": 8,
         "sourceType": "module"
