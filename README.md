@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/halkeye/hubot-phrases.png?branch=master)](https://travis-ci.org/halkeye/hubot-phrases)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/667ad904c0dd4cea94f50e513720e71a)](https://www.codacy.com/app/halkeye/hubot-phrases?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=halkeye/hubot-phrases&amp;utm_campaign=Badge_Grade)
-[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/667ad904c0dd4cea94f50e513720e71a)](https://www.codacy.com/app/halkeye/hubot-phrases?utm_source=github.com&utm_medium=referral&utm_content=halkeye/hubot-phrases&utm_campaign=Badge_Coverage)
+[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/667ad904c0dd4cea94f50e513720e71a)](https://www.codacy.com/app/halkeye/hubot-phrases?utm_source=github.com&utm_medium=referral&utm_content=halkeye/hubot-phrases&utm_campaign=Badge_Coverage) [![Greenkeeper badge](https://badges.greenkeeper.io/halkeye/hubot-phrases.svg)](https://greenkeeper.io/)
 
 phrases (responses) support for hubot
 
