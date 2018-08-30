@@ -104,7 +104,7 @@ module.exports = function Plugin (robot) {
 
       this.stats = {};
       this.last_phrase = {};
-      robot.brain.on('loaded', (data = {_private: {}}) => {
+      robot.brain.on('loaded', (data = { _private: {} }) => {
         robot.brain.emit('finished_loading_phrases');
       });
     }
