@@ -49,7 +49,7 @@
     "mocha": "^5.2.0",
     "nyc": "^13.0.1",
     "should": "~13.2.3",
-    "supertest": "^3.3.0"
+    "supertest": "^3.4.1"
   },
   "keywords": [
     "hubot",
