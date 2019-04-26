@@ -36,7 +36,7 @@
   "devDependencies": {
     "co": "^4.6.0",
     "coffee-script": "^1.12.7",
-    "conventional-changelog-cli": "^2.0.5",
+    "conventional-changelog-cli": "^2.0.17",
     "conventional-github-releaser": "^3.1.2",
     "eslint": "^5.5.0",
     "eslint-config-standard": "^12.0.0",
