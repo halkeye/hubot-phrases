@@ -36,20 +36,20 @@
   "devDependencies": {
     "co": "^4.6.0",
     "coffee-script": "^1.12.7",
-    "conventional-changelog-cli": "^2.0.5",
+    "conventional-changelog-cli": "^2.0.17",
     "conventional-github-releaser": "^3.1.2",
-    "eslint": "^5.5.0",
+    "eslint": "^6.0.1",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-node": "^8.0.0",
+    "eslint-plugin-node": "^9.0.0",
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
-    "hubot": "~3.2.0",
+    "hubot": "~3.3.1",
     "hubot-test-helper": "^1.9.0",
     "mocha": "^6.0.2",
-    "nyc": "^13.0.1",
+    "nyc": "^14.0.0",
     "should": "~13.2.3",
-    "supertest": "^3.4.1"
+    "supertest": "^4.0.2"
   },
   "keywords": [
     "hubot",
