@@ -45,15 +45,17 @@ module.exports = function Plugin (robot) {
       if (data.alias) {
         this.alias = data.alias;
       } else if (data.tidbits) {
-        for (let tid of data.tidbits) {
+        for (const tid of data.tidbits) {
           this.tidbits.push(tid);
         }
       }
     }
+
     canAlias (user) {
       // FIXME - op only commands according to bucket
       return this.canEdit(user);
     }
+
     canEdit (user) {
       if (user.roles) {
         if (user.roles.includes('edit_phrases')) {
@@ -68,6 +70,7 @@ module.exports = function Plugin (robot) {
       }
       return true;
     }
+
     tidbit () {
       return this.tidbits[Math.floor(Math.random() * this.tidbits.length)];
     }
@@ -84,6 +87,7 @@ module.exports = function Plugin (robot) {
         tidbits: this.tidbits
       };
     }
+
     save () {
       const phrases = robot.brain.get('phrases') || {};
       const phrase = phrases[this.name] = this.toObj();
@@ -108,29 +112,33 @@ module.exports = function Plugin (robot) {
         robot.brain.emit('finished_loading_phrases');
       });
     }
+
     hasFacts () {
       return Object.keys(robot.brain.get('phrases') || {}).length;
     }
+
     get (str, history) {
       if (!this.hasFacts()) { return; }
-      let phrases = robot.brain.get('phrases');
+      const phrases = robot.brain.get('phrases');
       if (!phrases || !phrases[str]) { return; }
-      let phrase = new Factoid(str, phrases[str]);
+      const phrase = new Factoid(str, phrases[str]);
       if (!phrase) { return; }
       robot.logger.debug(util.inspect(phrase));
       if (history) { history.push(phrase); }
       if (phrase.alias) { return this.get(phrase.alias, history); }
       return phrase;
     }
+
     random (history) {
       if (!this.hasFacts()) { return; }
-      let keys = Object.keys(robot.brain.get('phrases'));
-      let phrase = keys[Math.floor(Math.random() * keys.length)];
+      const keys = Object.keys(robot.brain.get('phrases'));
+      const phrase = keys[Math.floor(Math.random() * keys.length)];
       return this.get(phrase, history);
     }
+
     output (msg, phrase, history) {
-      let tidbit = phrase.tidbit();
-      let outputHistory = { phrase, tidbit };
+      const tidbit = phrase.tidbit();
+      const outputHistory = { phrase, tidbit };
       // FIXME this should be per room
       if (history) { history.push(outputHistory); }
       let output = tidbit.tidbit;
@@ -151,15 +159,16 @@ module.exports = function Plugin (robot) {
         return msg.send([phrase.name, tidbit.verb, output].join(' '));
       }
     }
+
     alias (msg) {
-      let srcName = msg.match[1].trim();
-      let targetName = msg.match[2].trim();
-      let src = robot.phrase.get(srcName);
+      const srcName = msg.match[1].trim();
+      const targetName = msg.match[2].trim();
+      const src = robot.phrase.get(srcName);
       if (src) {
         msg.reply(`Sorry, there is already a phrase for '${srcName}'.`);
         return;
       }
-      let target = robot.phrase.get(targetName);
+      const target = robot.phrase.get(targetName);
       if (!target) {
         msg.reply(`Sorry, there is no phrase for the target '${targetName}'.`);
         return;
@@ -178,16 +187,18 @@ module.exports = function Plugin (robot) {
       phrase.save();
       msg.reply('Okay.');
     }
+
     setAddressed (msg) {
       msg.message.addressed = true;
       return this.set(msg);
     }
+
     set (msg) {
       msg.finish(); // we are adding a message, so ignore any other handler type
       let fact = msg.match[1].trim();
       let verb = msg.match[2].trim();
       let tidbit = msg.match[3].trim();
-      let forced = !!msg.match[4];
+      const forced = !!msg.match[4];
       if (!msg.message.addressed && /^[^a-zA-Z]*<.?\S+>/.test(fact)) {
         robot.logger.debug('Not learning from what seems to be an IRC quote: $fact');
         return;
@@ -207,7 +218,7 @@ module.exports = function Plugin (robot) {
       }
 
       this.stats.learn++;
-      let matches = tidbit.match(/^<(action|reply)>\s*(.*)/);
+      const matches = tidbit.match(/^<(action|reply)>\s*(.*)/);
       if (matches) {
         verb = `<${matches[1]}>`;
         tidbit = matches[2];
@@ -247,7 +258,7 @@ module.exports = function Plugin (robot) {
         return;
       }
 
-      for (let t of phrase.tidbits) {
+      for (const t of phrase.tidbits) {
         if (tidbit.toLowerCase() === t.tidbit.toLowerCase()) {
           msg.reply('I already had it that way');
           return;
@@ -264,33 +275,36 @@ module.exports = function Plugin (robot) {
       robot.logger.debug(`${msg.message.user.name} taught in ${msg.message.user.room} ${phrase.tidbits.length} '${fact}', '${verb}' '${tidbit}'`);
       return msg.reply('Okay.');
     }
+
     handlerLiteral (msg) {
       // page - http://wiki.xkcd.com/irc/bucket#Listing_phrases
-      let phraseName = msg.match[2].trim();
-      let phrase = robot.phrase.get(phraseName);
+      const phraseName = msg.match[2].trim();
+      const phrase = robot.phrase.get(phraseName);
       if (!phrase) {
         msg.reply('No such phrase');
         return;
       }
       msg.finish();
       if (phrase.tidbits.length > 10) {
-        let baseurl = (process.env.HUBOT_URL || (`http://${os.hostname()}:${robot.server.address().port}`)).replace(/\/+$/, '');
+        const baseurl = (process.env.HUBOT_URL || (`http://${os.hostname()}:${robot.server.address().port}`)).replace(/\/+$/, '');
         msg.reply(baseurl + '/' + robot.name + '/phrase/' + encodeURIComponent(phraseName));
         return;
       }
-      let response = [];
+      const response = [];
       phrase.tidbits.forEach(tidbit => response.push(`${tidbit.verb} ${tidbit.tidbit}`));
       return msg.reply(`${phrase.name} (${phrase.tidbits.length}): ${response.join('|')}`);
     }
+
     handlerGetAddressed (msg) {
       msg.message.addressed = true;
       return this.handlerGet(msg);
     }
+
     handlerGet (msg) {
-      let phraseName = msg.match[1].trim().replace(/[.,/#!$%^&*;:{}=-_`~()]/g, '');
+      const phraseName = msg.match[1].trim().replace(/[.,/#!$%^&*;:{}=-_`~()]/g, '');
       // FIXME this should be per room
-      let history = [];
-      let phrase = robot.phrase.get(phraseName, history);
+      const history = [];
+      const phrase = robot.phrase.get(phraseName, history);
       if (!phrase) { return; }
       robot.phrase.output(msg, phrase, history);
       msg.finish();
@@ -304,23 +318,23 @@ module.exports = function Plugin (robot) {
   robot.phrase.last_phrase = null;
 
   robot.respond(/(?:do something|something random)$/, msg => {
-    let history = [];
-    let phrase = robot.phrase.random(history);
+    const history = [];
+    const phrase = robot.phrase.random(history);
     robot.phrase.output(msg, phrase, history);
     if (history.length > 0) { robot.phrase.last_phrase = history; }
   });
 
   robot.hear(/^(?:do something|something random)$/, msg => {
-    let history = [];
-    let phrase = robot.phrase.random(history);
+    const history = [];
+    const phrase = robot.phrase.random(history);
     robot.phrase.output(msg, phrase, history);
     if (history.length > 0) { robot.phrase.last_phrase = history; }
   });
 
   robot.respond(/(un)?protect\s*(.*)$/, msg => {
-    let protect = !msg.match[1];
-    let phraseName = msg.match[2].trim();
-    let phrase = robot.phrase.get(phraseName);
+    const protect = !msg.match[1];
+    const phraseName = msg.match[2].trim();
+    const phrase = robot.phrase.get(phraseName);
     if (!phrase) {
       msg.reply('No such phrase.');
       return;
@@ -338,16 +352,16 @@ module.exports = function Plugin (robot) {
   robot.respond(/alias (.*?) => (.*?)$/, robot.phrase.alias);
 
   robot.router.get(`/${robot.name}/phrase/:phrase`, function (req, res) {
-    let phraseName = req.params.phrase;
-    let phrase = robot.phrase.get(phraseName);
+    const phraseName = req.params.phrase;
+    const phrase = robot.phrase.get(phraseName);
     if (!phrase) { return res.status(404).send('Not Found'); }
     res.setHeader('content-type', 'text/plain');
-    let content = [];
+    const content = [];
     content.push(`Factoid: [${phraseName}]`);
     content.push(`Protected: ${phrase.readonly ? 'true' : 'false'}`);
     content.push('');
     content.push('Tidbits:');
-    for (let tidbit of phrase.tidbits) {
+    for (const tidbit of phrase.tidbits) {
       content.push(tidbit.verb + '|' + tidbit.tidbit);
     }
     res.send(content.join('\n'));
@@ -367,9 +381,9 @@ module.exports = function Plugin (robot) {
   });
 
   robot.respond(/forget (.+)#(\d+)$/, msg => {
-    let phraseName = msg.match[1].trim();
-    let tid = parseInt(msg.match[2], 10) - 1;
-    let phrase = robot.phrase.get(phraseName);
+    const phraseName = msg.match[1].trim();
+    const tid = parseInt(msg.match[2], 10) - 1;
+    const phrase = robot.phrase.get(phraseName);
     if (!phrase) {
       msg.reply('No such phrase');
       return;
@@ -386,7 +400,7 @@ module.exports = function Plugin (robot) {
       msg.reply(`Can't find tidbit #${tid + 1}`);
       return;
     }
-    let tidbit = phrase.tidbits.splice(tid, 1);
+    const tidbit = phrase.tidbits.splice(tid, 1);
     msg.reply(`Deleted tidbit: ${tidbit[0].verb}|${tidbit[0].tidbit}`);
     return phrase.save();
   });
@@ -398,12 +412,12 @@ module.exports = function Plugin (robot) {
     // halkeye: That was 'rofl' (#315): <reply> I am also amused
     // halkeye: That was 'that's what she said' => 'thats what she said' (#65): <reply> No, that's what HE said.
     // halkeye: That was 'give me a weapon' (#863): <action> gives $weapon to $who;  vars used: { 'weapon' => [ 'a Biggoron Sword' ]};.
-    let lf = robot.phrase.last_phrase.slice(-1)[0];
-    let { name } = lf.phrase;
-    let { tidbit } = lf;
-    let idx = lf.phrase.tidbits.map(tid => tid.tidbit).indexOf(tidbit.tidbit);
+    const lf = robot.phrase.last_phrase.slice(-1)[0];
+    const { name } = lf.phrase;
+    const { tidbit } = lf;
+    const idx = lf.phrase.tidbits.map(tid => tid.tidbit).indexOf(tidbit.tidbit);
 
-    let response = [];
+    const response = [];
     response.push('That was');
     if (robot.phrase.last_phrase.length > 2) {
       robot.phrase.last_phrase.slice(0, -2).forEach(fact => response.push(`'${fact.name}' =>`));
