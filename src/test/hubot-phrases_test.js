@@ -8,8 +8,8 @@ const helper = new Helper('../scripts');
 const co = require('co');
 const request = require('supertest');
 
-let prefixed = function () { return `${this.room.robot.name}: `; };
-let unprefixed = function () { return ''; };
+const prefixed = function () { return `${this.room.robot.name}: `; };
+const unprefixed = function () { return ''; };
 
 function setupBrain (room, done) {
   const phrases = {
@@ -96,8 +96,8 @@ describe('#Commands', function () {
           it('#outputs text', function () { room.messages.should.not.be.empty(); });
           it('#outputs quarter', () =>
             room.messages.slice(-2).should.eql([
-              [ 'halkeye', 'something random' ],
-              [ 'hubot', 'takes a quarter from $who and places it in the swear jar.' ]
+              ['halkeye', 'something random'],
+              ['hubot', 'takes a quarter from $who and places it in the swear jar.']
             ])
           );
         });
@@ -107,8 +107,8 @@ describe('#Commands', function () {
           it('#outputs text', function () { return room.messages.should.not.be.empty(); });
           it('#outputs quarter', () =>
             room.messages.slice(-2).should.eql([
-              [ 'halkeye', 'do something' ],
-              [ 'hubot', 'takes a quarter from $who and places it in the swear jar.' ]
+              ['halkeye', 'do something'],
+              ['hubot', 'takes a quarter from $who and places it in the swear jar.']
             ])
           );
         });
@@ -117,8 +117,8 @@ describe('#Commands', function () {
           it('#outputs text', function () { room.messages.should.not.be.empty(); });
           it('#outputs quarter', () =>
             room.messages.slice(-2).should.eql([
-              [ 'halkeye', 'hubot do something' ],
-              [ 'hubot', 'takes a quarter from $who and places it in the swear jar.' ]
+              ['halkeye', 'hubot do something'],
+              ['hubot', 'takes a quarter from $who and places it in the swear jar.']
             ])
           );
         });
@@ -145,10 +145,10 @@ describe('#Commands', function () {
               ]);
             });
             it('#brain phrases updated', function () {
-              let phrase = this.room.robot.phrase.get(`${isare}.something`);
+              const phrase = this.room.robot.phrase.get(`${isare}.something`);
               phrase.should.not.be.empty();
               phrase.name.should.be.eql(`${isare}.something`);
-              phrase.tidbits.should.be.eql([ { creator: 'halkeye', room: 'room1', tidbit: 'moocow', verb: isare.replace(' also', '') } ]);
+              phrase.tidbits.should.be.eql([{ creator: 'halkeye', room: 'room1', tidbit: 'moocow', verb: isare.replace(' also', '') }]);
             });
           });
         })
