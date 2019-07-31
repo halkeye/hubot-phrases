@@ -7,6 +7,7 @@ const Helper = require('hubot-test-helper');
 const helper = new Helper('../scripts');
 const co = require('co');
 const request = require('supertest');
+const { cleanPhraseName } = require('../scripts/hubot-phrases');
 
 const prefixed = function () { return `${this.room.robot.name}: `; };
 const unprefixed = function () { return ''; };
@@ -201,6 +202,50 @@ describe('#Commands', function () {
               ]
             }
           });
+        });
+    });
+    it('#71 - phrases should be case insensitive', function () {
+      this.room.robot.brain.set('phrases', {});
+      return Promise.resolve()
+        .then(() => this.room.user.say('halkeye', 'something is moocow'))
+        .then(() => this.room.user.say('halkeye', prefixed.call(this) + 'Something?'))
+        .then(() => this.room.user.say('halkeye', 'CAPITALS ARE YELLING'))
+        .then(() => this.room.user.say('halkeye', prefixed.call(this) + 'capitals?'))
+        .then(() => {
+          this.room.robot.brain.data._private.phrases.should.eql({
+            capitals: {
+              readonly: false,
+              fact: 'CAPITALS',
+              tidbits: [
+                {
+                  tidbit: 'YELLING',
+                  verb: 'ARE',
+                  creator: 'halkeye',
+                  room: 'room1'
+                }
+              ]
+            },
+            something: {
+              readonly: false,
+              fact: 'something',
+              tidbits: [
+                {
+                  tidbit: 'moocow',
+                  verb: 'is',
+                  creator: 'halkeye',
+                  room: 'room1'
+                }
+              ]
+            }
+          });
+          this.room.messages.should.eql([
+            ['halkeye', 'something is moocow'],
+            ['halkeye', 'hubot: Something?'],
+            ['hubot', 'something is moocow'],
+            ['halkeye', 'CAPITALS ARE YELLING'],
+            ['halkeye', 'hubot: capitals?'],
+            ['hubot', 'CAPITALS ARE YELLING']
+          ]);
         });
     });
     it('punctation', function () {
@@ -638,6 +683,20 @@ describe('#unprotect', function () {
       this.room.robot.brain.get('phrases').readonly.should.have.property('readonly', false);
     });
   });
+});
+
+describe('cleanPhraseName', function () {
+  const tests = [
+    ['$money $money $money', 'money money money'],
+    ['question?', 'question'],
+    ['CAPITALS', 'capitals'],
+    ['omg, adam savage', 'omg adam savage']
+  ];
+  for (const test of tests) {
+    it(test[0] + ' => ' + test[1], () => {
+      cleanPhraseName(test[0]).should.eql(test[1]);
+    });
+  }
 });
 
 // halkeye: That was 'give me a weapon' (#863): <action> gives $weapon to $who;  vars used: { 'weapon' => [ 'a Biggoron Sword' ]};.

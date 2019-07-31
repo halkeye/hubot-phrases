@@ -28,9 +28,10 @@
 
 const util = require('util');
 const os = require('os');
+const assert = require('assert');
 
 function cleanPhraseName (name) {
-  return (name || '').trim().replace(/[.,/#!$%^&*;:{}=-_`~()]/g, '');
+  return (name || '').trim().replace(/[?.,/#!$%^&*;:{}=_`~()-]/g, '').toLowerCase();
 }
 
 module.exports = function Plugin (robot) {
@@ -40,6 +41,7 @@ module.exports = function Plugin (robot) {
         data = {};
       }
       this.name = name;
+      assert.ok(name);
       this.fact = data.fact || name;
       this.tidbits = [];
       this.alias = false;
@@ -456,3 +458,4 @@ module.exports = function Plugin (robot) {
   robot.respond(/(.{3,})$/, robot.phrase.handlerGetAddressed);
   robot.hear(/(.{3,})$/, robot.phrase.handlerGet);
 };
+module.exports.cleanPhraseName = cleanPhraseName;
