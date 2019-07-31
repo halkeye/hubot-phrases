@@ -29,6 +29,10 @@
 const util = require('util');
 const os = require('os');
 
+function cleanPhraseName (name) {
+  return (name || '').trim().replace(/[.,/#!$%^&*;:{}=-_`~()]/g, '');
+}
+
 module.exports = function Plugin (robot) {
   class Factoid {
     constructor (name, data) {
@@ -36,6 +40,7 @@ module.exports = function Plugin (robot) {
         data = {};
       }
       this.name = name;
+      this.fact = data.fact || name;
       this.tidbits = [];
       this.alias = false;
       this.readonly = false;
@@ -79,10 +84,12 @@ module.exports = function Plugin (robot) {
       if (this.alias) {
         return {
           alias: this.alias,
+          fact: this.fact,
           readonly: this.readonly
         };
       }
       return {
+        fact: this.fact,
         readonly: this.readonly,
         tidbits: this.tidbits
       };
@@ -156,13 +163,13 @@ module.exports = function Plugin (robot) {
       } else if (tidbit.verb === 'is' && phrase.name.toLowerCase() === robot.name.toLowerCase()) {
         return msg.send(`I am ${output}`);
       } else {
-        return msg.send([phrase.name, tidbit.verb, output].join(' '));
+        return msg.send([phrase.fact, tidbit.verb, output].join(' '));
       }
     }
 
     alias (msg) {
-      const srcName = msg.match[1].trim();
-      const targetName = msg.match[2].trim();
+      const srcName = cleanPhraseName(msg.match[1]);
+      const targetName = cleanPhraseName(msg.match[2]);
       const src = robot.phrase.get(srcName);
       if (src) {
         msg.reply(`Sorry, there is already a phrase for '${srcName}'.`);
@@ -238,7 +245,8 @@ module.exports = function Plugin (robot) {
         return;
       }
 
-      fact = fact.trim();
+      const originalFactName = fact.trim();
+      fact = cleanPhraseName(fact);
       robot.logger.debug(`Learning ${fact} ${verb} ${tidbit}`);
 
       if (fact.toLowerCase() === msg.message.user.name.toLowerCase() || fact.toLowerCase() === msg.message.user.name.toLowerCase() + ' quotes') {
@@ -250,6 +258,7 @@ module.exports = function Plugin (robot) {
       let phrase = this.get(fact);
       if (!phrase) {
         phrase = new Factoid(fact);
+        phrase.fact = originalFactName;
         phrase.creator = msg.message.user.name;
         phrase.room = msg.message.user.room;
       } else if (!phrase.canEdit(msg.message.user)) {
@@ -280,7 +289,7 @@ module.exports = function Plugin (robot) {
 
     handlerLiteral (msg) {
       // page - http://wiki.xkcd.com/irc/bucket#Listing_phrases
-      const phraseName = msg.match[2].trim();
+      const phraseName = cleanPhraseName(msg.match[2]);
       const phrase = robot.phrase.get(phraseName);
       if (!phrase) {
         msg.reply('No such phrase');
@@ -303,7 +312,7 @@ module.exports = function Plugin (robot) {
     }
 
     handlerGet (msg) {
-      const phraseName = msg.match[1].trim().replace(/[.,/#!$%^&*;:{}=-_`~()]/g, '');
+      const phraseName = cleanPhraseName(msg.match[1]);
       // FIXME this should be per room
       const history = [];
       const phrase = robot.phrase.get(phraseName, history);
@@ -335,7 +344,7 @@ module.exports = function Plugin (robot) {
 
   robot.respond(/(un)?protect\s*(.*)$/, msg => {
     const protect = !msg.match[1];
-    const phraseName = msg.match[2].trim();
+    const phraseName = cleanPhraseName(msg.match[2]);
     const phrase = robot.phrase.get(phraseName);
     if (!phrase) {
       msg.reply('No such phrase.');
@@ -383,7 +392,7 @@ module.exports = function Plugin (robot) {
   });
 
   robot.respond(/forget (.+)#(\d+)$/, msg => {
-    const phraseName = msg.match[1].trim();
+    const phraseName = cleanPhraseName(msg.match[1]);
     const tid = parseInt(msg.match[2], 10) - 1;
     const phrase = robot.phrase.get(phraseName);
     if (!phrase) {

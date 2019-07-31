@@ -17,7 +17,7 @@ function setupBrain (room, done) {
       readonly: false,
       tidbits: [{ tidbit: 'takes a quarter from $who and places it in the swear jar.', verb: '<action>' }]
     },
-    single_action: {
+    'single action': {
       readonly: false,
       tidbits: [{ tidbit: 'takes a quarter from $who and places it in the swear jar.', verb: '<action>' }]
     },
@@ -134,26 +134,26 @@ describe('#Commands', function () {
                 this.room.robot.brain.once('finished_loading_phrases', resolve);
                 this.room.robot.brain.set('phrases', {});
               })
-                .then(() => this.room.user.say('halkeye', `${type[1].call(this)}${isare}.something ${isare} moocow`));
+                .then(() => this.room.user.say('halkeye', `${type[1].call(this)}${isare} something ${isare} moocow`));
               return promise;
             });
 
             it('#outputs okay', function () {
               if (type[0] === 'Addressed') {
                 this.room.messages.should.eql([
-                  ['halkeye', `${type[1].call(this)}${isare}.something ${isare} moocow`],
+                  ['halkeye', `${type[1].call(this)}${isare} something ${isare} moocow`],
                   ['hubot', '@halkeye Okay.']
                 ]);
               } else {
                 this.room.messages.should.eql([
-                  ['halkeye', `${type[1].call(this)}${isare}.something ${isare} moocow`]
+                  ['halkeye', `${type[1].call(this)}${isare} something ${isare} moocow`]
                 ]);
               }
             });
             it('#brain phrases updated', function () {
-              const phrase = this.room.robot.phrase.get(`${isare}.something`);
+              const phrase = this.room.robot.phrase.get(`${isare} something`);
               phrase.should.not.be.empty();
-              phrase.name.should.be.eql(`${isare}.something`);
+              phrase.name.should.be.eql(`${isare} something`);
               phrase.tidbits.should.be.eql([{ creator: 'halkeye', room: 'room1', tidbit: 'moocow', verb: isare.replace(' also', '') }]);
             });
           });
@@ -166,6 +166,42 @@ describe('#Commands', function () {
     beforeEach(function (done) {
       this.room = helper.createRoom();
       setupBrain(this.room, done);
+    });
+    it('#70 - Handle punctuation inside of set statements', function () {
+      this.room.robot.brain.set('phrases', {});
+      return Promise.resolve()
+        .then(() => this.room.user.say('halkeye', 'omg, adam savage is in expanse.'))
+        .then(() => this.room.user.say('halkeye', prefixed.call(this) + 'omg, adam savage?'))
+        .then(() => this.room.user.say('halkeye', prefixed.call(this) + 'omg, adam savage'))
+        .then(() => this.room.user.say('halkeye', prefixed.call(this) + 'omg adam savage?'))
+        .then(() => this.room.user.say('halkeye', prefixed.call(this) + 'omg adam savage'))
+        .then(() => {
+          this.room.messages.should.eql([
+            ['halkeye', 'omg, adam savage is in expanse.'],
+            ['halkeye', 'hubot: omg, adam savage?'],
+            ['hubot', 'omg, adam savage is in expanse.'],
+            ['halkeye', 'hubot: omg, adam savage'],
+            ['hubot', 'omg, adam savage is in expanse.'],
+            ['halkeye', 'hubot: omg adam savage?'],
+            ['hubot', 'omg, adam savage is in expanse.'],
+            ['halkeye', 'hubot: omg adam savage'],
+            ['hubot', 'omg, adam savage is in expanse.']
+          ]);
+          this.room.robot.brain.data._private.phrases.should.eql({
+            'omg adam savage': {
+              readonly: false,
+              fact: 'omg, adam savage',
+              tidbits: [
+                {
+                  tidbit: 'in expanse.',
+                  verb: 'is',
+                  creator: 'halkeye',
+                  room: 'room1'
+                }
+              ]
+            }
+          });
+        });
     });
     it('punctation', function () {
       return Promise.resolve()
@@ -201,14 +237,14 @@ describe('#Commands', function () {
       this.room = helper.createRoom();
       setupBrain(this.room, done);
     });
-    describe('single_action', function () {
+    describe('single action', function () {
       beforeEach(function () {
-        return this.room.user.say('halkeye', 'hubot literal single_action');
+        return this.room.user.say('halkeye', 'hubot literal single action');
       });
       it('respond something', function () {
         this.room.messages.should.eql([
-          ['halkeye', 'hubot literal single_action'],
-          ['hubot', '@halkeye single_action (1): <action> takes a quarter from $who and places it in the swear jar.']
+          ['halkeye', 'hubot literal single action'],
+          ['hubot', '@halkeye single action (1): <action> takes a quarter from $who and places it in the swear jar.']
         ]);
       });
     });
@@ -439,12 +475,12 @@ describe('#Commands', function () {
     });
     describe('trying to alias to existing', function () {
       beforeEach(function () {
-        return this.room.user.say('halkeye', 'hubot alias single_action => dammit');
+        return this.room.user.say('halkeye', 'hubot alias single action => dammit');
       });
       it('respond something', function () {
         this.room.messages.should.eql([
-          ['halkeye', 'hubot alias single_action => dammit'],
-          ['hubot', "@halkeye Sorry, there is already a phrase for 'single_action'."]
+          ['halkeye', 'hubot alias single action => dammit'],
+          ['hubot', "@halkeye Sorry, there is already a phrase for 'single action'."]
         ]);
       });
     });
@@ -557,6 +593,49 @@ describe('#Commands', function () {
         ]);
         this.room.robot.brain.get('phrases').readonly.should.have.property('readonly', false);
       });
+    });
+  });
+});
+describe('#unprotect', function () {
+  afterEach(function () { this.room.destroy(); });
+  beforeEach(function (done) {
+    this.room = helper.createRoom();
+    setupBrain(this.room, done);
+  });
+  describe('missing phrase', function () {
+    beforeEach(function () {
+      return this.room.user.say('halkeye', 'hubot unprotect notaphrase');
+    });
+    it('respond something', function () {
+      this.room.messages.should.eql([
+        ['halkeye', 'hubot unprotect notaphrase'],
+        ['hubot', '@halkeye No such phrase.']
+      ]);
+      this.room.robot.brain.get('phrases').readonly.should.have.property('readonly', true);
+    });
+  });
+  describe('already unprotected', function () {
+    beforeEach(function () {
+      return this.room.user.say('halkeye', 'hubot unprotect dammit');
+    });
+    it('respond something', function () {
+      this.room.messages.should.eql([
+        ['halkeye', 'hubot unprotect dammit'],
+        ['hubot', '@halkeye I already had it that way.']
+      ]);
+      this.room.robot.brain.get('phrases').dammit.should.have.property('readonly', false);
+    });
+  });
+  describe('unprotecting item', function () {
+    beforeEach(function () {
+      return this.room.user.say('halkeye', 'hubot unprotect readonly');
+    });
+    it('respond something', function () {
+      this.room.messages.should.eql([
+        ['halkeye', 'hubot unprotect readonly'],
+        ['hubot', '@halkeye Okay.']
+      ]);
+      this.room.robot.brain.get('phrases').readonly.should.have.property('readonly', false);
     });
   });
 });
