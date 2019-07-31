@@ -273,7 +273,9 @@ module.exports = function Plugin (robot) {
       });
       phrase.save();
       robot.logger.debug(`${msg.message.user.name} taught in ${msg.message.user.room} ${phrase.tidbits.length} '${fact}', '${verb}' '${tidbit}'`);
-      return msg.reply('Okay.');
+      if (msg.message.addressed) {
+        return msg.reply('Okay.');
+      }
     }
 
     handlerLiteral (msg) {

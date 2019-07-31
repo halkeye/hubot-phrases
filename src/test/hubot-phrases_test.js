@@ -59,7 +59,7 @@ describe('#Empty Brain', function () {
       .then(() => {
         this.room.robot.brain.get('phrases').should.have.property('rofl');
         this.room.messages.splice(-1).should.eql([
-          ['hubot', '@halkeye Okay.']
+          ['halkeye', 'rofl <reply> I am also amused']
         ]);
       });
   });
@@ -139,10 +139,16 @@ describe('#Commands', function () {
             });
 
             it('#outputs okay', function () {
-              this.room.messages.should.eql([
-                ['halkeye', `${type[1].call(this)}${isare}.something ${isare} moocow`],
-                ['hubot', '@halkeye Okay.']
-              ]);
+              if (type[0] === 'Addressed') {
+                this.room.messages.should.eql([
+                  ['halkeye', `${type[1].call(this)}${isare}.something ${isare} moocow`],
+                  ['hubot', '@halkeye Okay.']
+                ]);
+              } else {
+                this.room.messages.should.eql([
+                  ['halkeye', `${type[1].call(this)}${isare}.something ${isare} moocow`]
+                ]);
+              }
             });
             it('#brain phrases updated', function () {
               const phrase = this.room.robot.phrase.get(`${isare}.something`);
