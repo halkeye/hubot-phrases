@@ -21,6 +21,10 @@
       "url": "https://github.com/halkeye/hubot-phrases/blob/master/LICENSE-MIT"
     }
   ],
+  "np": {
+    "releaseDraft": false,
+    "yarn": false
+  },
   "main": "index",
   "engines": {
     "node": ">= 6"
@@ -30,7 +34,8 @@
     "test:cov-codacy": "nyc --reporter=lcov --reporter=text mocha test --recursive && cat coverage/lcov.info | codacy-coverage",
     "test:report": "nyc --reporter=lcov --reporter=text mocha",
     "test": "eslint  --ignore-path .gitignore . && mocha",
-    "postversion": "git push --tags && conventional-github-releaser -p angular"
+    "release": "np && git push --tags && conventional-github-releaser -p angular",
+    "postdeploy": "conventional-github-releaser -p angular"
   },
   "devDependencies": {
     "co": "^4.6.0",
