@@ -47,6 +47,7 @@
     "hubot": "~3.3.1",
     "hubot-test-helper": "^1.9.0",
     "mocha": "^6.0.2",
+    "np": "^5.0.3",
     "nyc": "^14.0.0",
     "should": "~13.2.3",
     "supertest": "^4.0.2"
